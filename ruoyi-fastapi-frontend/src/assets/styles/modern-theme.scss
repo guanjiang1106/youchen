@@ -1,0 +1,396 @@
+/**
+ * 现代化主题样式
+ * 包含渐变色、动画效果、玻璃态等现代设计元素
+ */
+
+// ==================== 现代化配色方案 ====================
+$modern-primary: #667eea;
+$modern-primary-light: #764ba2;
+$modern-secondary: #f093fb;
+$modern-accent: #4facfe;
+$modern-success: #00f2fe;
+$modern-warning: #ffd89b;
+$modern-danger: #f093fb;
+$modern-info: #a8edea;
+
+// 渐变色
+$gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+$gradient-blue: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+$gradient-purple: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+$gradient-orange: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+$gradient-green: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+
+// 玻璃态效果
+@mixin glass-effect($opacity: 0.7) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+// 卡片阴影
+@mixin modern-shadow($level: 1) {
+  @if $level == 1 {
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+  } @else if $level == 2 {
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.12);
+  } @else if $level == 3 {
+    box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.16);
+  }
+}
+
+// 悬停效果
+@mixin hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    transform: translateY(-4px);
+    @include modern-shadow(2);
+  }
+}
+
+// ==================== 全局样式优化 ====================
+.modern-theme {
+  // 平滑滚动
+  scroll-behavior: smooth;
+  
+  // 全局字体优化
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ==================== 卡片样式 ====================
+.modern-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  @include modern-shadow(1);
+  @include hover-lift;
+  border: none;
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: $gradient-primary;
+  }
+
+  &.glass {
+    @include glass-effect(0.8);
+  }
+}
+
+// ==================== 按钮样式 ====================
+.modern-btn {
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  &:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  &.primary {
+    background: $gradient-primary;
+    color: #fff;
+    box-shadow: 0 4px 15px 0 rgba(102, 126, 234, 0.4);
+
+    &:hover {
+      box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.6);
+      transform: translateY(-2px);
+    }
+  }
+
+  &.secondary {
+    background: $gradient-secondary;
+    color: #fff;
+    box-shadow: 0 4px 15px 0 rgba(240, 147, 251, 0.4);
+
+    &:hover {
+      box-shadow: 0 6px 20px 0 rgba(240, 147, 251, 0.6);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// ==================== 输入框样式 ====================
+.modern-input {
+  border-radius: 12px;
+  border: 2px solid #e8e8e8;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  background: #fff;
+
+  &:focus {
+    border-color: $modern-primary;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    outline: none;
+  }
+
+  &:hover {
+    border-color: #d0d0d0;
+  }
+}
+
+// ==================== 表格样式 ====================
+.modern-table {
+  border-radius: 16px;
+  overflow: hidden;
+  @include modern-shadow(1);
+
+  thead {
+    background: $gradient-primary;
+    
+    th {
+      color: #fff;
+      font-weight: 600;
+      padding: 16px;
+      border: none;
+    }
+  }
+
+  tbody {
+    tr {
+      transition: all 0.3s ease;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:hover {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        transform: scale(1.01);
+      }
+
+      td {
+        padding: 16px;
+        border: none;
+      }
+    }
+  }
+}
+
+// ==================== 侧边栏样式 ====================
+.modern-sidebar {
+  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+  border-radius: 0 20px 20px 0;
+  @include modern-shadow(2);
+
+  .menu-item {
+    border-radius: 12px;
+    margin: 8px 12px;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: $gradient-primary;
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(4px);
+
+      &::before {
+        transform: scaleY(1);
+      }
+    }
+
+    &.active {
+      background: rgba(102, 126, 234, 0.2);
+      
+      &::before {
+        transform: scaleY(1);
+      }
+    }
+  }
+}
+
+// ==================== 顶部导航栏样式 ====================
+.modern-navbar {
+  @include glass-effect(0.9);
+  border-radius: 0 0 20px 20px;
+  @include modern-shadow(1);
+  padding: 16px 24px;
+
+  .navbar-item {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    padding: 8px 12px;
+
+    &:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+  }
+}
+
+// ==================== 标签页样式 ====================
+.modern-tags {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+
+  .tag-item {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: #fff;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+
+    &:hover {
+      border-color: $modern-primary;
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      background: $gradient-primary;
+      color: #fff;
+      @include modern-shadow(1);
+    }
+
+    .close-icon {
+      margin-left: 8px;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// ==================== 加载动画 ====================
+.modern-loading {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: $modern-primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ==================== 渐变背景动画 ====================
+.gradient-bg {
+  background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// ==================== 脉冲动画 ====================
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+// ==================== 淡入动画 ====================
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ==================== 滑入动画 ====================
+.slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// ==================== 响应式设计 ====================
+@media (max-width: 768px) {
+  .modern-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .modern-btn {
+    padding: 10px 20px;
+  }
+
+  .modern-sidebar {
+    border-radius: 0;
+  }
+}

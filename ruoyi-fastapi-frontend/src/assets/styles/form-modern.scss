@@ -1,0 +1,430 @@
+/**
+ * 现代化表单和按钮样式优化
+ */
+
+// ==================== 按钮样式优化 ====================
+button.el-button,
+.el-button {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  background: #ffffff !important;
+  color: #1a73e8 !important;
+  border: 2px solid #1a73e8 !important;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: #eff6ff !important;
+    background-image: none !important;
+    background: #eff6ff !important;
+    color: #1557b0 !important;
+    border-color: #1557b0 !important;
+  }
+
+  // 所有类型按钮统一样式
+  &.el-button--primary,
+  &.el-button--success,
+  &.el-button--warning,
+  &.el-button--danger,
+  &.el-button--info {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    background: #ffffff !important;
+    color: #1a73e8 !important;
+    border: 2px solid #1a73e8 !important;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: #eff6ff !important;
+      background-image: none !important;
+      background: #eff6ff !important;
+      color: #1557b0 !important;
+      border-color: #1557b0 !important;
+    }
+
+    &.is-plain {
+      background-color: #ffffff !important;
+      background-image: none !important;
+      background: #ffffff !important;
+      color: #1a73e8 !important;
+      border: 2px solid #1a73e8 !important;
+
+      &:hover,
+      &:focus,
+      &:active {
+        background-color: #eff6ff !important;
+        background-image: none !important;
+        background: #eff6ff !important;
+        color: #1557b0 !important;
+        border-color: #1557b0 !important;
+      }
+    }
+  }
+
+  // 文本按钮
+  &.el-button--text {
+    padding: 8px 12px;
+    color: #1a73e8 !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    
+    &:hover,
+    &:focus,
+    &:active {
+      color: #1557b0 !important;
+      background-color: #eff6ff !important;
+      background-image: none !important;
+      background: #eff6ff !important;
+    }
+  }
+
+  // 小尺寸按钮
+  &.el-button--mini {
+    padding: 7px 15px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  &.el-button--small {
+    padding: 9px 18px;
+    font-size: 13px;
+    border-radius: 7px;
+  }
+
+  // 禁用状态
+  &.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f3f4f6 !important;
+    background-image: none !important;
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    color: #9ca3af !important;
+    
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: #f3f4f6 !important;
+      background-image: none !important;
+      background: #f3f4f6 !important;
+      border-color: #d1d5db !important;
+      color: #9ca3af !important;
+    }
+  }
+
+  // 图标按钮
+  [class*="el-icon-"] + span {
+    margin-left: 5px;
+  }
+
+  // 移除所有伪元素效果
+  &::before,
+  &::after {
+    display: none !important;
+  }
+}
+
+// ==================== 输入框样式优化 ====================
+.el-input {
+  .el-input__inner {
+    border-radius: 8px;
+    border: 1px solid #dcdfe6;
+    transition: all 0.3s ease;
+    padding: 0 15px;
+    height: 40px;
+    line-height: 40px;
+
+    &:hover {
+      border-color: #c0c4cc;
+    }
+
+    &:focus {
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+      outline: none;
+    }
+  }
+
+  &.is-disabled {
+    .el-input__inner {
+      background-color: #f5f7fa;
+      cursor: not-allowed;
+    }
+  }
+
+  // 输入框图标
+  .el-input__prefix,
+  .el-input__suffix {
+    display: flex;
+    align-items: center;
+  }
+}
+
+// ==================== 下拉选择框优化 ====================
+.el-select {
+  .el-input {
+    .el-input__inner {
+      cursor: pointer;
+    }
+  }
+
+  .el-input__suffix {
+    .el-select__caret {
+      color: #c0c4cc;
+      transition: transform 0.3s;
+    }
+  }
+
+  &.is-focus {
+    .el-input__suffix {
+      .el-select__caret {
+        transform: rotate(180deg);
+      }
+    }
+  }
+}
+
+.el-select-dropdown {
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e4e7ed;
+  margin-top: 8px;
+
+  .el-select-dropdown__item {
+    padding: 0 20px;
+    height: 38px;
+    line-height: 38px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: #f5f7fa;
+    }
+
+    &.selected {
+      color: #4a90e2;
+      font-weight: 600;
+      background-color: rgba(74, 144, 226, 0.1);
+    }
+  }
+}
+
+// ==================== 日期选择器优化 ====================
+.el-date-editor {
+  .el-input__inner {
+    padding-left: 35px;
+  }
+
+  .el-input__prefix {
+    left: 10px;
+    color: #c0c4cc;
+  }
+}
+
+.el-picker-panel {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e4e7ed;
+
+  .el-date-picker__header {
+    .el-picker-panel__icon-btn {
+      color: #606266;
+      
+      &:hover {
+        color: #4a90e2;
+      }
+    }
+  }
+
+  .el-date-table {
+    td {
+      &.available:hover {
+        color: #4a90e2;
+      }
+
+      &.today {
+        span {
+          color: #4a90e2;
+          font-weight: 600;
+        }
+      }
+
+      &.current:not(.disabled) {
+        span {
+          background-color: #4a90e2;
+          border-radius: 6px;
+        }
+      }
+    }
+  }
+}
+
+// ==================== 表单项优化 ====================
+.el-form {
+  .el-form-item {
+    margin-bottom: 22px;
+
+    .el-form-item__label {
+      color: #606266;
+      font-weight: 500;
+      line-height: 40px;
+      padding-right: 12px;
+    }
+
+    .el-form-item__error {
+      color: #f56c6c;
+      font-size: 12px;
+      padding-top: 4px;
+    }
+
+    &.is-required {
+      .el-form-item__label {
+        &::before {
+          color: #f56c6c;
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+
+  // 行内表单
+  &.el-form--inline {
+    .el-form-item {
+      margin-right: 16px;
+      margin-bottom: 16px;
+    }
+  }
+}
+
+// ==================== 对话框优化 ====================
+.el-dialog {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+
+  .el-dialog__header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .el-dialog__title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #303133;
+    }
+
+    .el-dialog__headerbtn {
+      top: 20px;
+      right: 24px;
+      
+      .el-dialog__close {
+        color: #909399;
+        font-size: 18px;
+        
+        &:hover {
+          color: #4a90e2;
+        }
+      }
+    }
+  }
+
+  .el-dialog__body {
+    padding: 24px;
+    color: #606266;
+  }
+
+  .el-dialog__footer {
+    padding: 16px 24px;
+    border-top: 1px solid #f0f0f0;
+    text-align: right;
+
+    .dialog-footer {
+      .el-button {
+        margin-left: 12px;
+      }
+    }
+  }
+}
+
+// ==================== 消息提示优化 ====================
+.el-message {
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 15px 20px;
+  min-width: 320px;
+
+  &--success {
+    background-color: #f0f9ff;
+    border-color: #b3e5fc;
+
+    .el-message__icon {
+      color: #67c23a;
+    }
+  }
+
+  &--warning {
+    background-color: #fffbf0;
+    border-color: #ffe58f;
+
+    .el-message__icon {
+      color: #e6a23c;
+    }
+  }
+
+  &--error {
+    background-color: #fff5f5;
+    border-color: #ffccc7;
+
+    .el-message__icon {
+      color: #f56c6c;
+    }
+  }
+
+  &--info {
+    background-color: #f5f7fa;
+    border-color: #d9d9d9;
+
+    .el-message__icon {
+      color: #909399;
+    }
+  }
+}
+
+// ==================== 响应式优化 ====================
+@media (max-width: 768px) {
+  .el-button {
+    padding: 8px 16px;
+    font-size: 13px;
+
+    &--mini {
+      padding: 6px 12px;
+      font-size: 11px;
+    }
+
+    &--small {
+      padding: 7px 14px;
+      font-size: 12px;
+    }
+  }
+
+  .el-input {
+    .el-input__inner {
+      height: 36px;
+      line-height: 36px;
+      font-size: 14px;
+    }
+  }
+
+  .el-dialog {
+    width: 90% !important;
+    margin-top: 5vh !important;
+
+    .el-dialog__body {
+      padding: 16px;
+    }
+  }
+}

@@ -1,0 +1,955 @@
+/**
+ * 高对比度样式 - 确保所有文字清晰可见
+ * 遵循 WCAG 2.1 AA 级别对比度标准（至少 4.5:1）
+ */
+
+// ==================== 全局加载遮罩优化 ====================
+.el-loading-mask {
+  // 半透明白色背景，确保内容可见
+  background-color: rgba(255, 255, 255, 0.92) !important;
+
+  .el-loading-spinner {
+    // 加载图标使用深色，确保在白色背景上可见
+    .circular {
+      width: 48px;
+      height: 48px;
+
+      .path {
+        stroke: #1a73e8 !important;
+        stroke-width: 3;
+      }
+    }
+
+    // 加载文字使用深色
+    .el-loading-text {
+      color: #1f2937 !important;
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      margin-top: 16px !important;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+// 全屏加载时的特殊处理
+.el-loading-parent--relative {
+  .el-loading-mask {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+}
+
+// ==================== 进度条优化 ====================
+.el-progress {
+  .el-progress-bar__outer {
+    background-color: #e5e7eb !important;
+    border-radius: 8px;
+    height: 10px !important;
+  }
+
+  .el-progress-bar__inner {
+    background: linear-gradient(90deg, #1a73e8 0%, #4285f4 100%) !important;
+    border-radius: 8px;
+  }
+
+  .el-progress__text {
+    color: #1f2937 !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+  }
+}
+
+// 进度条在加载遮罩中的样式
+.el-loading-mask {
+  .el-progress {
+    .el-progress-bar__outer {
+      background-color: #d1d5db !important;
+    }
+
+    .el-progress-bar__inner {
+      background: linear-gradient(90deg, #1a73e8 0%, #4285f4 100%) !important;
+    }
+
+    .el-progress__text {
+      color: #111827 !important;
+      font-weight: 700 !important;
+    }
+  }
+}
+
+// ==================== 消息提示优化 ====================
+.el-message {
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+  padding: 16px 24px !important;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+
+  // 成功消息 - 深绿色背景，白色文字
+  &--success {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+
+    .el-message__icon {
+      color: #ffffff !important;
+    }
+
+    .el-message__content {
+      color: #ffffff !important;
+      font-weight: 500 !important;
+    }
+  }
+
+  // 警告消息 - 深橙色背景，白色文字
+  &--warning {
+    background-color: #d97706 !important;
+    color: #ffffff !important;
+
+    .el-message__icon {
+      color: #ffffff !important;
+    }
+
+    .el-message__content {
+      color: #ffffff !important;
+      font-weight: 500 !important;
+    }
+  }
+
+  // 错误消息 - 深红色背景，白色文字
+  &--error {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+
+    .el-message__icon {
+      color: #ffffff !important;
+    }
+
+    .el-message__content {
+      color: #ffffff !important;
+      font-weight: 500 !important;
+    }
+  }
+
+  // 信息消息 - 深蓝色背景，白色文字
+  &--info {
+    background-color: #1a73e8 !important;
+    color: #ffffff !important;
+
+    .el-message__icon {
+      color: #ffffff !important;
+    }
+
+    .el-message__content {
+      color: #ffffff !important;
+      font-weight: 500 !important;
+    }
+  }
+
+  .el-message__content {
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+  }
+}
+
+// ==================== 通知优化 ====================
+.el-notification {
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid #e5e7eb;
+
+  .el-notification__title {
+    color: #111827 !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+  }
+
+  .el-notification__content {
+    color: #374151 !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+  }
+
+  .el-notification__icon {
+    font-size: 28px !important;
+  }
+
+  &.el-notification--success {
+    .el-notification__icon {
+      color: #059669 !important;
+    }
+  }
+
+  &.el-notification--warning {
+    .el-notification__icon {
+      color: #d97706 !important;
+    }
+  }
+
+  &.el-notification--error {
+    .el-notification__icon {
+      color: #dc2626 !important;
+    }
+  }
+
+  &.el-notification--info {
+    .el-notification__icon {
+      color: #1a73e8 !important;
+    }
+  }
+}
+
+// ==================== 对话框优化 ====================
+.el-dialog {
+  .el-dialog__title {
+    color: #111827 !important;
+    font-weight: 700 !important;
+  }
+
+  .el-dialog__body {
+    color: #374151 !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+  }
+
+  // 确保对话框中的表单文字清晰
+  .el-form-item__label {
+    color: #1f2937 !important;
+    font-weight: 600 !important;
+  }
+
+  .el-input__inner {
+    color: #111827 !important;
+
+    &::placeholder {
+      color: #9ca3af !important;
+    }
+  }
+}
+
+// ==================== 表格优化 ====================
+.el-table {
+  // 表头文字确保白色且加粗
+  .el-table__header-wrapper {
+    th {
+      .cell {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+
+  // 表格内容文字深色
+  .el-table__body-wrapper {
+    td {
+      .cell {
+        color: #1f2937 !important;
+        font-weight: 500 !important;
+      }
+    }
+  }
+
+  // 空数据提示
+  .el-table__empty-text {
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+  }
+}
+
+// ==================== 按钮文字优化 ====================
+// 使用更高优先级确保所有按钮都应用统一样式
+button.el-button,
+.el-button {
+  font-weight: 600 !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  background: #ffffff !important;
+  color: #1a73e8 !important;
+  border: 2px solid #1a73e8 !important;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: #eff6ff !important;
+    background-image: none !important;
+    background: #eff6ff !important;
+    color: #1557b0 !important;
+    border-color: #1557b0 !important;
+  }
+
+  // 所有类型按钮统一样式
+  &.el-button--primary,
+  &.el-button--success,
+  &.el-button--warning,
+  &.el-button--danger,
+  &.el-button--info {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    background: #ffffff !important;
+    color: #1a73e8 !important;
+    border: 2px solid #1a73e8 !important;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: #eff6ff !important;
+      background-image: none !important;
+      background: #eff6ff !important;
+      color: #1557b0 !important;
+      border-color: #1557b0 !important;
+    }
+  }
+
+  // 文本按钮 - 深色文字
+  &.el-button--text {
+    color: #1a73e8 !important;
+    font-weight: 600 !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    background: transparent !important;
+    border-color: transparent !important;
+
+    &:hover,
+    &:focus,
+    &:active {
+      color: #1557b0 !important;
+      background-color: #eff6ff !important;
+      background-image: none !important;
+      background: #eff6ff !important;
+    }
+  }
+
+  // 朴素按钮
+  &.is-plain {
+    font-weight: 600 !important;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    background: #ffffff !important;
+    color: #1a73e8 !important;
+    border: 2px solid #1a73e8 !important;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: #eff6ff !important;
+      background-image: none !important;
+      background: #eff6ff !important;
+      color: #1557b0 !important;
+      border-color: #1557b0 !important;
+    }
+  }
+
+  // 移除所有渐变和伪元素效果
+  &::before,
+  &::after {
+    display: none !important;
+  }
+}
+
+// ==================== 标签优化 ====================
+.el-tag {
+  font-weight: 600 !important;
+
+  &--primary {
+    background-color: #dbeafe !important;
+    color: #1e40af !important;
+    border-color: #93c5fd !important;
+  }
+
+  &--success {
+    background-color: #d1fae5 !important;
+    color: #065f46 !important;
+    border-color: #6ee7b7 !important;
+  }
+
+  &--warning {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border-color: #fcd34d !important;
+  }
+
+  &--danger {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    border-color: #fca5a5 !important;
+  }
+
+  &--info {
+    background-color: #e0e7ff !important;
+    color: #3730a3 !important;
+    border-color: #a5b4fc !important;
+  }
+}
+
+// ==================== 下拉菜单优化 ====================
+.el-select-dropdown__item {
+  color: #1f2937 !important;
+  font-weight: 500 !important;
+
+  &:hover {
+    background-color: #f3f4f6 !important;
+    color: #1a73e8 !important;
+  }
+
+  &.selected {
+    color: #1a73e8 !important;
+    font-weight: 700 !important;
+    background-color: #eff6ff !important;
+  }
+}
+
+// ==================== 日期选择器优化 ====================
+.el-picker-panel {
+  .el-date-table {
+    td {
+      color: #374151 !important;
+
+      &.available:hover {
+        color: #1a73e8 !important;
+      }
+
+      &.today span {
+        color: #1a73e8 !important;
+        font-weight: 700 !important;
+      }
+
+      &.current:not(.disabled) span {
+        background-color: #1a73e8 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+      }
+    }
+  }
+
+  .el-date-picker__header-label {
+    color: #111827 !important;
+    font-weight: 600 !important;
+  }
+}
+
+// ==================== 分页优化 ====================
+.el-pagination {
+  .el-pagination__total {
+    color: #374151 !important;
+    font-weight: 600 !important;
+  }
+
+  .el-pager li {
+    color: #374151 !important;
+    font-weight: 600 !important;
+
+    &.active {
+      color: #ffffff !important;
+      font-weight: 700 !important;
+    }
+  }
+
+  .btn-prev,
+  .btn-next {
+    color: #374151 !important;
+    font-weight: 600 !important;
+  }
+
+  .el-pagination__jump {
+    color: #374151 !important;
+    font-weight: 600 !important;
+  }
+}
+
+// ==================== 警告框优化 ====================
+.el-alert {
+  font-weight: 500 !important;
+
+  &--success {
+    background-color: #d1fae5 !important;
+    color: #065f46 !important;
+    border: 1px solid #6ee7b7 !important;
+
+    .el-alert__icon {
+      color: #059669 !important;
+    }
+  }
+
+  &--warning {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border: 1px solid #fcd34d !important;
+
+    .el-alert__icon {
+      color: #d97706 !important;
+    }
+  }
+
+  &--error {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fca5a5 !important;
+
+    .el-alert__icon {
+      color: #dc2626 !important;
+    }
+  }
+
+  &--info {
+    background-color: #dbeafe !important;
+    color: #1e40af !important;
+    border: 1px solid #93c5fd !important;
+
+    .el-alert__icon {
+      color: #1a73e8 !important;
+    }
+  }
+
+  .el-alert__title {
+    font-weight: 700 !important;
+  }
+
+  .el-alert__description {
+    font-weight: 500 !important;
+  }
+}
+
+// ==================== 工具提示优化 ====================
+.el-tooltip__popper {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+
+  &[x-placement^="top"] .popper__arrow {
+    border-top-color: #1f2937 !important;
+  }
+
+  &[x-placement^="bottom"] .popper__arrow {
+    border-bottom-color: #1f2937 !important;
+  }
+
+  &[x-placement^="left"] .popper__arrow {
+    border-left-color: #1f2937 !important;
+  }
+
+  &[x-placement^="right"] .popper__arrow {
+    border-right-color: #1f2937 !important;
+  }
+}
+
+// ==================== 面包屑优化 ====================
+.el-breadcrumb {
+  .el-breadcrumb__item {
+    .el-breadcrumb__inner {
+      color: #6b7280 !important;
+      font-weight: 500 !important;
+
+      &:hover {
+        color: #1a73e8 !important;
+      }
+    }
+
+    &:last-child {
+      .el-breadcrumb__inner {
+        color: #1f2937 !important;
+        font-weight: 600 !important;
+      }
+    }
+  }
+
+  .el-breadcrumb__separator {
+    color: #9ca3af !important;
+  }
+}
+
+// ==================== 步骤条优化 ====================
+.el-steps {
+  .el-step__title {
+    color: #1f2937 !important;
+    font-weight: 600 !important;
+
+    &.is-process {
+      color: #1a73e8 !important;
+      font-weight: 700 !important;
+    }
+
+    &.is-finish {
+      color: #059669 !important;
+    }
+  }
+
+  .el-step__description {
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+  }
+}
+
+// ==================== 响应式优化 ====================
+@media (max-width: 768px) {
+  .el-message {
+    font-size: 13px !important;
+  }
+
+  .el-notification {
+    .el-notification__title {
+      font-size: 15px !important;
+    }
+
+    .el-notification__content {
+      font-size: 13px !important;
+    }
+  }
+}
+
+// ==================== 打印样式优化 ====================
+@media print {
+  .el-loading-mask {
+    display: none !important;
+  }
+
+  .el-table {
+    .el-table__header-wrapper {
+      th {
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  }
+}
+
+
+// ==================== 操作按钮行优化 ====================
+// 针对表格上方的操作按钮行 - 统一白色背景 + 蓝色文字
+.mb8 {
+  button.el-button,
+  .el-button {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    background: #ffffff !important;
+    color: #1a73e8 !important;
+    border: 2px solid #1a73e8 !important;
+    font-weight: 600 !important;
+    
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: #eff6ff !important;
+      background-image: none !important;
+      background: #eff6ff !important;
+      color: #1557b0 !important;
+      border-color: #1557b0 !important;
+    }
+    
+    // 所有类型的按钮都使用相同样式
+    &.el-button--primary,
+    &.el-button--success,
+    &.el-button--warning,
+    &.el-button--danger,
+    &.el-button--info {
+      background-color: #ffffff !important;
+      background-image: none !important;
+      background: #ffffff !important;
+      color: #1a73e8 !important;
+      border: 2px solid #1a73e8 !important;
+      
+      &:hover,
+      &:focus,
+      &:active {
+        background-color: #eff6ff !important;
+        background-image: none !important;
+        background: #eff6ff !important;
+        color: #1557b0 !important;
+        border-color: #1557b0 !important;
+      }
+      
+      &.is-plain {
+        background-color: #ffffff !important;
+        background-image: none !important;
+        background: #ffffff !important;
+        color: #1a73e8 !important;
+        border: 2px solid #1a73e8 !important;
+        
+        &:hover,
+        &:focus,
+        &:active {
+          background-color: #eff6ff !important;
+          background-image: none !important;
+          background: #eff6ff !important;
+          color: #1557b0 !important;
+          border-color: #1557b0 !important;
+        }
+      }
+    }
+
+    // 移除伪元素效果
+    &::before,
+    &::after {
+      display: none !important;
+    }
+  }
+}
+
+// ==================== 表格上方工具栏按钮 ====================
+.el-row.mb8 {
+  .el-col {
+    .el-button {
+      min-width: 80px;
+      height: 36px;
+      line-height: 36px;
+      padding: 0 20px;
+      font-size: 14px;
+      
+      // 图标和文字间距
+      i + span {
+        margin-left: 6px;
+      }
+    }
+  }
+}
+
+// ==================== 表格内操作按钮 ====================
+.el-table {
+  .el-button--text {
+    color: #1a73e8 !important;
+    font-weight: 600 !important;
+    padding: 8px 12px !important;
+    
+    &:hover {
+      color: #1557b0 !important;
+      background-color: #eff6ff !important;
+    }
+    
+    &.el-button--danger {
+      color: #dc2626 !important;
+      
+      &:hover {
+        color: #b91c1c !important;
+        background-color: #fef2f2 !important;
+      }
+    }
+    
+    &.el-button--success {
+      color: #059669 !important;
+      
+      &:hover {
+        color: #047857 !important;
+        background-color: #ecfdf5 !important;
+      }
+    }
+  }
+}
+
+// ==================== 搜索表单按钮 ====================
+.el-form {
+  .el-form-item {
+    button.el-button,
+    .el-button {
+      background-color: #ffffff !important;
+      background-image: none !important;
+      background: #ffffff !important;
+      color: #1a73e8 !important;
+      border: 2px solid #1a73e8 !important;
+      font-weight: 600 !important;
+      
+      &:hover,
+      &:focus,
+      &:active {
+        background-color: #eff6ff !important;
+        background-image: none !important;
+        background: #eff6ff !important;
+        color: #1557b0 !important;
+        border-color: #1557b0 !important;
+      }
+      
+      // 所有类型按钮统一样式
+      &.el-button--primary,
+      &.el-button--success,
+      &.el-button--warning,
+      &.el-button--danger,
+      &.el-button--info {
+        background-color: #ffffff !important;
+        background-image: none !important;
+        background: #ffffff !important;
+        color: #1a73e8 !important;
+        border: 2px solid #1a73e8 !important;
+        
+        &:hover,
+        &:focus,
+        &:active {
+          background-color: #eff6ff !important;
+          background-image: none !important;
+          background: #eff6ff !important;
+          color: #1557b0 !important;
+          border-color: #1557b0 !important;
+        }
+      }
+
+      // 移除伪元素效果
+      &::before,
+      &::after {
+        display: none !important;
+      }
+    }
+  }
+}
+
+// ==================== 对话框底部按钮 ====================
+.el-dialog__footer {
+  .dialog-footer {
+    button.el-button,
+    .el-button {
+      min-width: 90px;
+      height: 40px;
+      background-color: #ffffff !important;
+      background-image: none !important;
+      background: #ffffff !important;
+      color: #1a73e8 !important;
+      border: 2px solid #1a73e8 !important;
+      font-weight: 600 !important;
+      
+      &:hover,
+      &:focus,
+      &:active {
+        background-color: #eff6ff !important;
+        background-image: none !important;
+        background: #eff6ff !important;
+        color: #1557b0 !important;
+        border-color: #1557b0 !important;
+      }
+      
+      // 所有类型按钮统一样式
+      &.el-button--primary,
+      &.el-button--success,
+      &.el-button--warning,
+      &.el-button--danger,
+      &.el-button--info {
+        background-color: #ffffff !important;
+        background-image: none !important;
+        background: #ffffff !important;
+        color: #1a73e8 !important;
+        border: 2px solid #1a73e8 !important;
+        
+        &:hover,
+        &:focus,
+        &:active {
+          background-color: #eff6ff !important;
+          background-image: none !important;
+          background: #eff6ff !important;
+          color: #1557b0 !important;
+          border-color: #1557b0 !important;
+        }
+      }
+
+      // 移除伪元素效果
+      &::before,
+      &::after {
+        display: none !important;
+      }
+    }
+  }
+}
+
+// ==================== 按钮禁用状态 ====================
+.el-button {
+  &.is-disabled,
+  &.is-disabled:hover,
+  &.is-disabled:focus {
+    background-color: #f3f4f6 !important;
+    border-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    opacity: 0.7 !important;
+    
+    &.is-plain {
+      background-color: #ffffff !important;
+      border-color: #e5e7eb !important;
+      color: #9ca3af !important;
+    }
+  }
+}
+
+// ==================== 按钮加载状态 ====================
+.el-button {
+  &.is-loading {
+    position: relative;
+    pointer-events: none;
+    
+    &::before {
+      pointer-events: none;
+      content: '';
+      position: absolute;
+      left: -1px;
+      top: -1px;
+      right: -1px;
+      bottom: -1px;
+      border-radius: inherit;
+      background-color: rgba(255, 255, 255, 0.35);
+    }
+    
+    .el-icon-loading {
+      color: inherit !important;
+      font-weight: bold !important;
+    }
+  }
+}
+
+// ==================== 按钮组优化 ====================
+.el-button-group {
+  .el-button {
+    font-weight: 600 !important;
+    
+    &:not(:first-child) {
+      margin-left: -2px;
+    }
+    
+    &:first-child {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    
+    &:last-child {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    
+    &:not(:first-child):not(:last-child) {
+      border-radius: 0;
+    }
+  }
+}
+
+// ==================== 下拉按钮优化 ====================
+.el-dropdown {
+  .el-button {
+    font-weight: 600 !important;
+  }
+}
+
+.el-dropdown-menu {
+  .el-dropdown-menu__item {
+    color: #374151 !important;
+    font-weight: 500 !important;
+    
+    &:hover {
+      background-color: #f3f4f6 !important;
+      color: #1a73e8 !important;
+    }
+    
+    &.is-disabled {
+      color: #9ca3af !important;
+      cursor: not-allowed !important;
+    }
+  }
+}
+
+// ==================== 右侧工具栏按钮 ====================
+.right-toolbar {
+  .el-button {
+    font-weight: 600 !important;
+    
+    &--text {
+      color: #6b7280 !important;
+      
+      &:hover {
+        color: #1a73e8 !important;
+        background-color: #f3f4f6 !important;
+      }
+    }
+  }
+}

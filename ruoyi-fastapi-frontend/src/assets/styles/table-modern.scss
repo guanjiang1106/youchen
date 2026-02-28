@@ -1,0 +1,356 @@
+/**
+ * 现代化表格样式 - 优化配色和可读性
+ */
+
+// ==================== 表格头部样式优化 ====================
+.el-table {
+  // 表格头部 - 使用更柔和的渐变色
+  .el-table__header-wrapper {
+    .el-table__header {
+      thead {
+        th {
+          background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%) !important;
+          color: #ffffff !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          padding: 16px 0 !important;
+          border-bottom: none !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+          
+          .cell {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+          }
+
+          // 排序图标颜色
+          .caret-wrapper {
+            .sort-caret {
+              border-color: rgba(255, 255, 255, 0.6);
+              
+              &.ascending {
+                border-bottom-color: #ffffff;
+              }
+              
+              &.descending {
+                border-top-color: #ffffff;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 表格主体样式
+  .el-table__body-wrapper {
+    .el-table__body {
+      tbody {
+        tr {
+          transition: all 0.3s ease;
+          
+          &:hover {
+            background-color: #f5f7fa !important;
+            
+            > td {
+              background-color: transparent !important;
+            }
+          }
+
+          td {
+            padding: 14px 0 !important;
+            border-bottom: 1px solid #ebeef5 !important;
+            color: #606266 !important;
+            font-size: 14px !important;
+
+            .cell {
+              color: #606266 !important;
+              line-height: 1.6;
+            }
+          }
+
+          // 斑马纹
+          &.el-table__row--striped {
+            background-color: #fafafa !important;
+            
+            > td {
+              background-color: transparent !important;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 选择框列
+  .el-table-column--selection {
+    .cell {
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+  }
+
+  // 固定列阴影优化
+  &::before {
+    background-color: transparent !important;
+  }
+
+  .el-table__fixed,
+  .el-table__fixed-right {
+    &::before {
+      background-color: transparent !important;
+    }
+  }
+
+  // 空数据提示
+  .el-table__empty-block {
+    .el-table__empty-text {
+      color: #909399;
+      font-size: 14px;
+    }
+  }
+}
+
+// ==================== 表格边框样式 ====================
+.el-table--border {
+  border: 1px solid #ebeef5 !important;
+  border-radius: 8px;
+  overflow: hidden;
+
+  &::after,
+  .el-table__fixed-right::before,
+  .el-table__fixed::before {
+    background-color: #ebeef5 !important;
+  }
+
+  th,
+  td {
+    border-right: 1px solid #ebeef5 !important;
+  }
+
+  th.el-table__cell {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+}
+
+// ==================== 表格带斑马纹 ====================
+.el-table--striped {
+  .el-table__body {
+    tr.el-table__row--striped {
+      td {
+        background-color: #fafafa !important;
+      }
+    }
+  }
+}
+
+// ==================== 表格操作按钮优化 ====================
+.el-table {
+  .el-button--text {
+    padding: 0 8px;
+    color: #409eff;
+    font-size: 14px;
+    
+    &:hover {
+      color: #66b1ff;
+      background-color: transparent;
+    }
+
+    &.el-button--danger {
+      color: #f56c6c;
+      
+      &:hover {
+        color: #f78989;
+      }
+    }
+
+    &.el-button--success {
+      color: #67c23a;
+      
+      &:hover {
+        color: #85ce61;
+      }
+    }
+  }
+}
+
+// ==================== 分页组件优化 ====================
+.el-pagination {
+  padding: 16px 0;
+  text-align: right;
+
+  .el-pagination__total {
+    color: #606266;
+    font-size: 14px;
+  }
+
+  .el-pager {
+    li {
+      min-width: 32px;
+      height: 32px;
+      line-height: 32px;
+      border-radius: 6px;
+      margin: 0 4px;
+      color: #606266;
+      font-size: 14px;
+      transition: all 0.3s;
+
+      &:hover {
+        color: #409eff;
+        background-color: #f5f7fa;
+      }
+
+      &.active {
+        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+        color: #ffffff;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .btn-prev,
+  .btn-next {
+    min-width: 32px;
+    height: 32px;
+    line-height: 32px;
+    border-radius: 6px;
+    color: #606266;
+    
+    &:hover {
+      color: #409eff;
+    }
+
+    &:disabled {
+      color: #c0c4cc;
+      cursor: not-allowed;
+    }
+  }
+
+  .el-pagination__sizes {
+    .el-input {
+      .el-input__inner {
+        border-radius: 6px;
+        height: 32px;
+        line-height: 32px;
+      }
+    }
+  }
+
+  .el-pagination__jump {
+    color: #606266;
+    font-size: 14px;
+
+    .el-input {
+      .el-input__inner {
+        border-radius: 6px;
+        height: 32px;
+        line-height: 32px;
+      }
+    }
+  }
+}
+
+// ==================== 表格加载状态 ====================
+.el-table__body-wrapper {
+  .el-loading-mask {
+    background-color: rgba(255, 255, 255, 0.9);
+    
+    .el-loading-spinner {
+      .circular {
+        width: 42px;
+        height: 42px;
+        
+        .path {
+          stroke: #409eff;
+          stroke-width: 3;
+        }
+      }
+
+      .el-loading-text {
+        color: #606266;
+        font-size: 14px;
+        margin-top: 12px;
+      }
+    }
+  }
+}
+
+// ==================== 响应式优化 ====================
+@media (max-width: 768px) {
+  .el-table {
+    font-size: 13px;
+
+    .el-table__header-wrapper {
+      .el-table__header {
+        thead {
+          th {
+            padding: 12px 0 !important;
+            font-size: 13px !important;
+          }
+        }
+      }
+    }
+
+    .el-table__body-wrapper {
+      .el-table__body {
+        tbody {
+          tr {
+            td {
+              padding: 10px 0 !important;
+              font-size: 13px !important;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .el-pagination {
+    text-align: center;
+    
+    .el-pager {
+      li {
+        min-width: 28px;
+        height: 28px;
+        line-height: 28px;
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+// ==================== 深色主题支持（可选） ====================
+.dark-theme {
+  .el-table {
+    .el-table__header-wrapper {
+      .el-table__header {
+        thead {
+          th {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%) !important;
+          }
+        }
+      }
+    }
+
+    .el-table__body-wrapper {
+      .el-table__body {
+        tbody {
+          tr {
+            &:hover {
+              background-color: #2c3e50 !important;
+            }
+
+            td {
+              background-color: #1e1e1e !important;
+              color: #e0e0e0 !important;
+              border-bottom-color: #3a3a3a !important;
+
+              .cell {
+                color: #e0e0e0 !important;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
