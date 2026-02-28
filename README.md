@@ -3,27 +3,7 @@
 </h1>
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">RuoYi-Vue-FastAPI</h1>
 <h4 align="center">基于RuoYi-Vue+FastAPI前后端分离的快速开发框架</h4>
-<p align="center">
-    <a href="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/stargazers">
-        <img alt="Gitee" src="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/badge/star.svg?theme=dark">
-    </a>
-    <a href="https://github.com/insistence/RuoYi-Vue-FastAPI">
-        <img alt="Github" src="https://img.shields.io/github/stars/insistence/RuoYi-Vue-FastAPI?style=social">
-    </a>
-    <a href="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI">
-        <img alt="project version" src="https://img.shields.io/badge/version-1.9.0-brightgreen.svg">
-    </a>
-    <a href="https://github.com/astral-sh/ruff">
-        <img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json">
-    </a>
-    <a href="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/blob/master/LICENSE">
-        <img alt="LICENSE" src="https://img.shields.io/github/license/mashape/apistatus.svg">
-    </a>
-    <img alt="node version" src="https://img.shields.io/badge/node-≥14-blue">
-    <img alt="python version" src="https://img.shields.io/badge/python-≥3.10-blue">
-    <img alt="mysql version" src="https://img.shields.io/badge/MySQL-≥5.7-blue">
-    <img alt="redis version" src="https://img.shields.io/badge/redis-≥6.2-blue">
-</p>
+
 
 ## 平台简介
 
@@ -34,12 +14,6 @@ RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个
 * 后端采用FastAPI、sqlalchemy、MySQL（PostgreSQL）、Redis、OAuth2 & Jwt。
 * 权限认证使用OAuth2 & Jwt，支持多终端认证系统。
 * 支持加载动态权限菜单，多方式轻松权限控制。
-* Vue3版本：
-  * Gitte仓库地址：<https://gitee.com/insistence2022/RuoYi-Vue3-FastAPI>
-  * GitHub仓库地址：<https://github.com/insistence/RuoYi-Vue3-FastAPI>
-* 纯Python版本：
-  * Gitte仓库地址：<https://gitee.com/insistence2022/dash-fastapi-admin>
-  * GitHub仓库地址：<https://github.com/insistence/Dash-FastAPI-Admin>
 * 特别鸣谢：<u>[RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue)</u>、<u>[RuoYi-App](https://github.com/yangzongzhuan/RuoYi-App)</u>
 
 ## 内置功能
@@ -63,123 +37,231 @@ RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个
 17. 代码生成：配置数据库表信息一键生成前后端代码（python、sql、vue、js），支持下载。
 18. AI管理：提供AI模型管理和AI对话功能。
 
-## 演示图
+## ✨ 特色功能
 
-<table>
-    <tr>
-        <td>
-            <img alt="login" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/login.png">
-        </td>
-        <td>
-            <img alt="dashboard" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/dashboard.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="user" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/user.png">
-        </td>
-        <td>
-            <img alt="role" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/role.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="menu" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/menu.png">
-        </td>
-        <td>
-            <img alt="dept" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/dept.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt=""post src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/post.png">
-        </td>
-        <td>
-            <img alt="dict" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/dict.png">
-        </td>
-    </tr>  
-    <tr>
-        <td>
-            <img alt="config" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/config.png">
-        </td>
-        <td>
-            <img alt="notice" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/notice.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="operLog" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/operLog.png">
-        </td>
-        <td>
-            <img alt="loginLog" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/loginLog.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="online" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/online.png">
-        </td>
-        <td>
-            <img alt="job" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/job.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="server" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/server.png">
-        </td>
-        <td>
-            <img alt="cache" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/cache.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="cacheList" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/cacheList.png">
-        </td>
-        <td>
-            <img alt="form" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/form.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="api" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/api.png">
-        </td>
-        <td>
-            <img alt="gen" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/gen.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="aiModel" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/aiModel.png">
-        </td>
-        <td>
-            <img alt="aiChat" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/aiChat.png">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="profile" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/profile.png">
-        </td>
-    </tr>
-</table>
+### 🤖 AI 辅助开发
 
-<table>
-    <tr>
-        <td>
-            <img alt="applogin" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/app/login.png">
-        </td>
-        <td>
-            <img alt="appWorkbench" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/app/workbench.png">
-        </td>
-        <td>
-            <img alt="appProfile" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/app/profile.png">
-        </td>
-    </tr>
-</table>
+本项目内置完整的 AI 开发规则（`.kiro/steering/project-development-rules.md`），支持使用 Kiro 或其他 AI 助手进行智能开发：
 
-## 在线体验
+- **自动创建数据库表**：描述需求，AI 自动生成符合规范的建表 SQL
+- **一键生成代码**：AI 调用代码生成器，自动生成前后端完整代码
+- **智能修改功能**：AI 理解业务逻辑，精准修改代码
+- **保护框架完整性**：AI 严格遵循开发规范，不会修改核心文件
+- **极速开发**：从需求到可用功能，只需几分钟
 
-* *账号：admin*
-* *密码：admin123*
-* 演示地址：<a href="https://vfadmin.insistence.tech">vfadmin管理系统<a>
+**使用示例：**
+
+```
+# 创建新模块
+"创建一个产品管理模块，包含产品名称、编码、价格、状态等字段"
+
+# 添加功能
+"在订单模块中添加订单审核功能，审核通过后自动扣减库存"
+
+# 修改字段
+"给产品表添加库存字段，并在列表页显示"
+```
+
+详细使用方法请查看下方的 [🤖 AI 辅助开发指南](#-ai-辅助开发指南推荐) 章节。
+
+### 🚀 代码生成器
+
+系统内置强大的代码生成器，支持：
+
+- **一键生成**：配置数据库表信息，一键生成前后端代码
+- **完整功能**：自动生成增删改查、分页、导出、权限控制等功能
+- **符合规范**：生成的代码完全符合项目规范
+- **支持下载**：可下载代码包或直接生成到项目目录
+- **模板可定制**：支持自定义代码生成模板
+
+**使用方式：**
+
+1. 登录系统管理后台
+2. 访问：系统工具 -> 代码生成
+3. 导入数据库表
+4. 配置生成信息
+5. 一键生成代码
+
+
+
+## 🤖 AI 辅助开发指南（推荐）
+
+### 使用 AI 快速创建新功能模块
+
+本项目已配置完整的 AI 开发规则，可以使用 Kiro 或其他 AI 助手快速创建新功能模块，包括自动创建数据库表、生成前后端代码等。
+
+#### 方式一：AI 自动创建表 + 代码生成器（最快）
+
+这是最推荐的方式，AI 会帮你创建数据库表，然后使用系统内置的代码生成器生成完整的前后端代码。
+
+**步骤：**
+
+1. **告诉 AI 你的需求**
+
+```
+请帮我创建一个产品管理模块，包含以下字段：
+- 产品名称（必填）
+- 产品编码（唯一）
+- 产品分类（下拉选择）
+- 产品价格（数字）
+- 产品状态（启用/停用）
+- 产品描述（文本域）
+```
+
+2. **AI 会自动完成以下工作：**
+   - ✅ 创建符合规范的数据库表（包含审计字段）
+   - ✅ 生成建表 SQL 语句
+   - ✅ 执行 SQL 创建表
+   - ✅ 使用代码生成器生成前后端代码
+   - ✅ 配置菜单和权限
+   - ✅ 提供测试步骤
+
+3. **你只需要：**
+   - 重启后端服务
+   - 刷新前端页面
+   - 开始使用新功能
+
+**示例对话：**
+
+```
+用户：创建一个订单管理模块，包含订单号、客户名称、订单金额、订单状态、下单时间等字段
+
+AI：好的，我来帮你创建订单管理模块：
+
+1. 首先创建数据库表 biz_order
+2. 使用代码生成器生成代码
+3. 配置菜单和权限
+
+[AI 会自动执行所有步骤]
+
+完成！订单管理模块已创建，包含：
+- 后端 API：/business/order/list、/add、/edit、/remove
+- 前端页面：订单列表、新增、编辑、删除、导出
+- 权限配置：business:order:list、add、edit、remove、export
+```
+
+#### 方式二：AI 手动创建完整模块
+
+如果你需要更多自定义逻辑，可以让 AI 手动创建完整的模块代码。
+
+**步骤：**
+
+1. **告诉 AI 你的需求**
+
+```
+请手动创建一个库存管理模块，需要包含：
+- 库存查询（支持按产品名称、仓库模糊查询）
+- 库存入库（需要校验产品是否存在）
+- 库存出库（需要校验库存是否充足）
+- 库存预警（库存低于阈值时标红显示）
+```
+
+2. **AI 会创建：**
+   - ✅ 数据库表结构
+   - ✅ DO 实体类（entity/do/）
+   - ✅ VO 对象类（entity/vo/）
+   - ✅ DAO 数据访问层（dao/）
+   - ✅ Service 业务逻辑层（service/）
+   - ✅ Controller API 接口层（controller/）
+   - ✅ 自定义业务逻辑
+
+3. **AI 会遵循的规范：**
+   - 不修改框架核心文件
+   - 使用标准的目录结构
+   - 添加完整的类型注解
+   - 包含事务处理和异常处理
+   - 添加权限控制和日志记录
+   - 使用统一的响应格式
+
+#### 方式三：AI 修改现有模块
+
+**步骤：**
+
+1. **告诉 AI 你要修改的内容**
+
+```
+请在产品管理模块中添加以下功能：
+1. 添加产品库存字段
+2. 在列表页显示库存数量
+3. 添加库存预警功能（库存<10时标红）
+4. 添加批量导入产品功能
+```
+
+2. **AI 会：**
+   - ✅ 修改数据库表（添加字段）
+   - ✅ 更新 DO、VO 类
+   - ✅ 修改 Service 和 DAO 层
+   - ✅ 更新 Controller 接口
+   - ✅ 添加新的业务逻辑
+
+### AI 开发的优势
+
+1. **极速开发**：从需求到可用功能，只需几分钟
+2. **规范统一**：AI 严格遵循项目开发规范，代码风格一致
+3. **零错误**：自动处理类型注解、事务、异常、权限等
+4. **完整功能**：包含增删改查、分页、导出、权限控制等完整功能
+5. **智能提示**：AI 会提醒你需要重启服务、配置菜单等步骤
+
+### AI 开发注意事项
+
+1. **明确需求**：尽量详细描述字段、功能、业务逻辑
+2. **提供示例**：可以参考现有模块，如"参考岗位管理模块创建"
+3. **分步进行**：复杂功能可以分多次对话完成
+4. **及时测试**：每次修改后及时测试，发现问题及时反馈给 AI
+
+### AI 可以帮你做什么
+
+- ✅ 创建新的业务模块（产品、订单、库存等）
+- ✅ 添加新字段和功能
+- ✅ 修改业务逻辑
+- ✅ 优化查询性能
+- ✅ 添加数据校验
+- ✅ 实现复杂的业务规则
+- ✅ 修复 bug
+- ✅ 代码重构
+- ✅ 添加单元测试
+
+### AI 不会做什么（受保护）
+
+- ❌ 修改框架核心文件（common/、config/、utils/）
+- ❌ 修改系统管理模块（module_admin/）
+- ❌ 修改中间件和异常处理
+- ❌ 修改数据库连接配置
+- ❌ 修改路由注册机制
+
+### 快速开始示例
+
+**示例 1：创建简单的 CRUD 模块**
+
+```
+用户：创建一个分类管理模块，包含分类名称、分类编码、排序号、状态字段
+
+AI：[自动创建表 + 生成代码 + 配置菜单]
+
+完成！访问 http://localhost/business/category 即可使用
+```
+
+**示例 2：创建带关联的模块**
+
+```
+用户：创建一个文章管理模块，需要关联分类表，包含文章标题、作者、内容、封面图、发布时间等字段
+
+AI：[创建表 + 配置外键 + 生成代码 + 添加关联查询]
+
+完成！文章列表会显示分类名称，支持按分类筛选
+```
+
+**示例 3：添加复杂业务逻辑**
+
+```
+用户：在订单模块中添加订单审核功能，审核通过后自动扣减库存，审核拒绝后恢复库存
+
+AI：[添加审核状态字段 + 实现审核逻辑 + 添加库存操作 + 添加事务处理]
+
+完成！订单审核功能已添加，包含完整的事务回滚机制
+```
+
+---
 
 ## 项目开发及发布相关
 
@@ -187,10 +269,10 @@ RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个
 
 ```bash
 # 克隆项目
-git clone https://gitee.com/insistence2022/RuoYi-Vue-FastAPI.git
+git clone https://github.com/guanjiang1106/youchen.git
 
 # 进入项目根目录
-cd RuoYi-Vue-FastAPI
+cd youchen
 ```
 
 #### 前端
@@ -226,7 +308,7 @@ yarn dev:h5
 yarn dev:mp-weixin
 ```
 
-移动端详细文档请参考：[ruoyi-fastapi-app/README.md](./ruoyi-fastapi-app/README.md)
+
 
 #### 后端
 
@@ -299,21 +381,3 @@ docker compose -f docker-compose.my.yml up -d --build
 docker compose -f docker-compose.pg.yml up -d --build
 ```
 
-## 交流与赞助
-
-如果有对本项目及FastAPI感兴趣的朋友，欢迎加入知识星球一起交流学习，让我们一起变得更强。如果你觉得这个项目帮助到了你，你可以请作者喝杯咖啡表示鼓励☕。扫描下面微信二维码添加微信备注VF-Admin即可进群。
-<table>
-    <tr>
-        <td>
-            <img alt="zsxq" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/common/zsxq.jpg">
-        </td>
-        <td>
-            <img alt="zanzhu" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/common/zanzhu.jpg">
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <img alt="wxcode" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/common/wxcode.jpg">
-        </td>
-    </tr>
-</table>
