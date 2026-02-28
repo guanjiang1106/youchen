@@ -151,7 +151,7 @@ async def export_module_admin_teacher_list(
 ) -> Response:
     # 获取全量数据
     teacher_query_result = await TeacherService.get_teacher_list_services(query_db, teacher_page_query, is_page=False)
-    teacher_export_result = await TeacherService.export_teacher_list_services(teacher_query_result)
+    teacher_export_result = await TeacherService.export_teacher_list_services(request, teacher_query_result)
     logger.info('导出成功')
 
     return ResponseUtil.streaming(data=bytes2file_response(teacher_export_result))

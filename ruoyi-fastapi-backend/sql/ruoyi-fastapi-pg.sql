@@ -1110,7 +1110,8 @@ $BODY$
                      COST 100;
 
 create or replace view list_column as
-SELECT c.relname                                                                           AS table_name,
+SELECT DISTINCT ON (c.relname, a.attname)
+       c.relname                                                                           AS table_name,
        a.attname                                                                           AS column_name,
        d.description                                                                       AS column_comment,
        CASE
@@ -1118,7 +1119,7 @@ SELECT c.relname                                                                
            ELSE '0'
            END                                                                             AS is_required,
        CASE
-           WHEN con.conname IS NOT NULL THEN '1'
+           WHEN con.contype = 'p' THEN '1'
            ELSE '0'
            END                                                                             AS is_pk,
        a.attnum                                                                            AS sort,
@@ -1140,14 +1141,14 @@ FROM pg_attribute a
          JOIN (pg_class c
     JOIN pg_namespace n ON c.relnamespace = n.oid) ON a.attrelid = c.oid
          LEFT JOIN pg_description d ON d.objoid = c.oid AND a.attnum = d.objsubid
-         LEFT JOIN pg_constraint con ON con.conrelid = c.oid AND (a.attnum = ANY (con.conkey))
+         LEFT JOIN pg_constraint con ON con.conrelid = c.oid AND (a.attnum = ANY (con.conkey)) AND con.contype = 'p'
          LEFT JOIN pg_attrdef ad ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
          LEFT JOIN pg_type t ON a.atttypid = t.oid
 WHERE (c.relkind = ANY (ARRAY['r'::"char", 'p'::"char"]))
   AND a.attnum > 0
   AND n.nspname = 'public'::name
-  AND not a.attisdropped
-  ORDER BY c.relname, a.attnum;
+  AND NOT a.attisdropped
+ORDER BY c.relname, a.attname, a.attnum;
 
 create or replace view list_table as
 SELECT c.relname              AS table_name,

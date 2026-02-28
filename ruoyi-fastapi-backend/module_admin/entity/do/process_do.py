@@ -1,4 +1,4 @@
-from sqlalchemy import String, BigInteger, SmallInteger, Text, Column, Numeric, DateTime, Integer
+from sqlalchemy import Text, DateTime, String, SmallInteger, Column, Integer, BigInteger, Numeric
 
 from config.database import Base
 

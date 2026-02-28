@@ -1,13 +1,55 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="所需工装夹具" prop="requiredTooling">
+      <el-form-item label="物料编码" prop="materialCode">
         <el-input
-          v-model="queryParams.requiredTooling"
-          placeholder="请输入所需工装夹具"
+          v-model="queryParams.materialCode"
+          placeholder="请输入物料编码"
           clearable
           @keyup.enter.native="handleQuery"
         />
+      </el-form-item>
+      <el-form-item label="物料名称" prop="materialName">
+        <el-input
+          v-model="queryParams.materialName"
+          placeholder="请输入物料名称"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="规格型号" prop="specification">
+        <el-input
+          v-model="queryParams.specification"
+          placeholder="请输入规格型号"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="计量单位" prop="unit">
+        <el-input
+          v-model="queryParams.unit"
+          placeholder="请输入计量单位"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="分类 ID" prop="categoryId">
+        <el-input
+          v-model="queryParams.categoryId"
+          placeholder="请输入分类 ID"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="状态" prop="status">
+        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+          <el-option
+            v-for="dict in dict.type.sys_normal_disable"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -23,7 +65,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['module_admin:process:add']"
+          v-hasPermi="['module_admin:material:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -33,7 +75,7 @@
           icon="el-icon-edit"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['module_admin:process:edit']"
+          v-hasPermi="['module_admin:material:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -43,7 +85,7 @@
           icon="el-icon-delete"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['module_admin:process:remove']"
+          v-hasPermi="['module_admin:material:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -52,23 +94,25 @@
           plain
           icon="el-icon-download"
           @click="handleExport"
-          v-hasPermi="['module_admin:process:export']"
+          v-hasPermi="['module_admin:material:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="processList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="materialList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键 ID" align="center" prop="id" />
-      <el-table-column label="主键 ID" align="center" prop="id" />
-      <el-table-column label="工艺编码" align="center" prop="processCode" />
-      <el-table-column label="工艺名称" align="center" prop="processName" />
-      <el-table-column label="工艺描述" align="center" prop="description" />
-      <el-table-column label="工序顺序" align="center" prop="sequenceOrder" />
-      <el-table-column label="标准工时" align="center" prop="standardTime" />
-      <el-table-column label="所需工装夹具" align="center" prop="requiredTooling" />
+      <el-table-column label="物料编码" align="center" prop="materialCode" />
+      <el-table-column label="物料名称" align="center" prop="materialName" />
+      <el-table-column label="规格型号" align="center" prop="specification" />
+      <el-table-column label="计量单位" align="center" prop="unit" />
+      <el-table-column label="分类 ID" align="center" prop="categoryId" />
+      <el-table-column label="库存数量" align="center" prop="stockQuantity" />
+      <el-table-column label="安全库存" align="center" prop="safetyStock" />
+      <el-table-column label="参考单价" align="center" prop="price" />
       <el-table-column label="状态：1-启用，0-禁用" align="center" prop="status" />
+      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -76,14 +120,14 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['module_admin:process:edit']"
+            v-hasPermi="['module_admin:material:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['module_admin:process:remove']"
+            v-hasPermi="['module_admin:material:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -97,33 +141,38 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改工艺对话框 -->
+    <!-- 添加或修改物料对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="120px">
-      <el-form-item v-if="renderField(true, true)" label="工艺编码" prop="processCode">
-        <el-input v-model="form.processCode" placeholder="请输入工艺编码" />
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      <el-form-item v-if="renderField(true, true)" label="物料编码" prop="materialCode">
+        <el-input v-model="form.materialCode" placeholder="请输入物料编码" />
       </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="工艺名称" prop="processName">
-        <el-input v-model="form.processName" placeholder="请输入工艺名称" />
+      <el-form-item v-if="renderField(true, true)" label="物料名称" prop="materialName">
+        <el-input v-model="form.materialName" placeholder="请输入物料名称" />
       </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="工艺描述" prop="description">
-        <el-input v-model="form.description" type="textarea" placeholder="请输入工艺描述" />
+      <el-form-item v-if="renderField(true, true)" label="规格型号" prop="specification">
+        <el-input v-model="form.specification" placeholder="请输入规格型号" />
       </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="工序顺序" prop="sequenceOrder">
-        <el-input-number v-model="form.sequenceOrder" :min="1" placeholder="请输入工序顺序" />
+      <el-form-item v-if="renderField(false, true)" label="计量单位" prop="unit">
+        <el-input v-model="form.unit" placeholder="请输入计量单位" />
       </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="标准工时(分钟)" prop="standardTime">
-        <el-input-number v-model="form.standardTime" :min="0" :precision="2" placeholder="请输入标准工时" />
-      </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="所需工装夹具" prop="requiredTooling">
-        <el-input v-model="form.requiredTooling" placeholder="请输入所需工装夹具" />
+      <el-form-item v-if="renderField(false, true)" label="分类 ID" prop="categoryId">
+        <el-input v-model="form.categoryId" placeholder="请输入分类 ID" />
       </el-form-item>
       <el-form-item v-if="renderField(true, true)" label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :label="1">启用</el-radio>
-          <el-radio :label="0">禁用</el-radio>
+          <el-radio
+            v-for="dict in dict.type.sys_normal_disable"
+            :key="dict.value"
+            :label="parseInt(dict.value)">
+            {{ dict.label }}
+          </el-radio>
         </el-radio-group>
       </el-form-item>
+      <el-form-item v-if="renderField(true, true)" label="备注" prop="remark">
+        <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+      </el-form-item>
+
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -136,10 +185,11 @@
 </template>
 
 <script>
-import { listProcess, getProcess, delProcess, addProcess, updateProcess } from "@/api/module_admin/process";
+import { listMaterial, getMaterial, delMaterial, addMaterial, updateMaterial } from "@/api/module_admin/material";
 
 export default {
-  name: "Process",
+  name: "Material",
+  dicts: ['sys_normal_disable'],  // 使用系统内置的正常/停用字典
   data() {
     return {
       // 遮罩层
@@ -154,8 +204,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 工艺表格数据
-      processList: [],
+      // 物料表格数据
+      materialList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -164,14 +214,29 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        description: null,
-        standardTime: null,
-        requiredTooling: null,
+        materialCode: null,
+        materialName: null,
+        specification: null,
+        unit: null,
+        categoryId: null,
+        stockQuantity: null,
+        safetyStock: null,
+        price: null,
+        status: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
+        materialCode: [
+          { required: true, message: "物料编码不能为空", trigger: "blur" }
+        ],
+        materialName: [
+          { required: true, message: "物料名称不能为空", trigger: "blur" }
+        ],
+        status: [
+          { required: true, message: "状态不能为空", trigger: "change" }
+        ]
       }
     };
   },
@@ -179,11 +244,11 @@ export default {
     this.getList();
   },
   methods: {
-    /** 查询工艺列表 */
+    /** 查询物料列表 */
     getList() {
       this.loading = true;
-      listProcess(this.queryParams).then(response => {
-        this.processList = response.rows;
+      listMaterial(this.queryParams).then(response => {
+        this.materialList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -197,14 +262,16 @@ export default {
     reset() {
       this.form = {
         id: null,
-        id: null,
-        processCode: null,
-        processName: null,
-        description: null,
-        sequenceOrder: null,
-        standardTime: null,
-        requiredTooling: null,
-        status: null,
+        materialCode: null,
+        materialName: null,
+        specification: null,
+        unit: null,
+        categoryId: null,
+        stockQuantity: null,
+        safetyStock: null,
+        price: null,
+        status: 1,  // 默认启用
+        remark: null,
         createTime: null,
         updateTime: null,
       };
@@ -230,16 +297,16 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加工艺";
+      this.title = "添加物料";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
       const id = row.id || this.ids;
-      getProcess(id).then(response => {
+      getMaterial(id).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改工艺";
+        this.title = "修改物料";
       });
     },
     /** 提交按钮 */
@@ -247,13 +314,13 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.id != null) {
-            updateProcess(this.form).then(response => {
+            updateMaterial(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addProcess(this.form).then(response => {
+            addMaterial(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -265,8 +332,8 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除工艺编号为"' + ids + '"的数据项？').then(function() {
-        return delProcess(ids);
+      this.$modal.confirm('是否确认删除物料编号为"' + ids + '"的数据项？').then(function() {
+        return delMaterial(ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
@@ -274,9 +341,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('module_admin/process/export', {
+      this.download('module_admin/material/export', {
         ...this.queryParams
-      }, `process_${new Date().getTime()}.xlsx`);
+      }, `material_${new Date().getTime()}.xlsx`);
     },
     /** 是否渲染字段 */
     renderField(insert, edit) {

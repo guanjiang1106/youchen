@@ -1,6 +1,32 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="教师编号" prop="teacherNo">
+        <el-input
+          v-model="queryParams.teacherNo"
+          placeholder="请输入教师编号"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="姓名" prop="name">
+        <el-input
+          v-model="queryParams.name"
+          placeholder="请输入姓名"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="性别：0-未知，1-男，2-女" prop="gender">
+        <el-select v-model="queryParams.gender" placeholder="请选择性别：0-未知，1-男，2-女" clearable>
+          <el-option
+            v-for="dict in dict.type.sys_user_sex"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="出生日期" prop="birthDate">
         <el-date-picker
           v-model="queryParams.birthDate"
@@ -41,6 +67,11 @@
           clearable
           @keyup.enter.native="handleQuery"
         />
+      </el-form-item>
+      <el-form-item label="状态：0-禁用，1-启用" prop="status">
+        <el-select v-model="queryParams.status" placeholder="请选择状态：0-禁用，1-启用" clearable>
+          <el-option label="请选择字典生成" value="" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -94,10 +125,13 @@
     <el-table v-loading="loading" :data="teacherList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键 ID" align="center" prop="id" />
-      <el-table-column label="主键 ID" align="center" prop="id" />
       <el-table-column label="教师编号" align="center" prop="teacherNo" />
       <el-table-column label="姓名" align="center" prop="name" />
-      <el-table-column label="性别：0-未知，1-男，2-女" align="center" prop="gender" />
+      <el-table-column label="性别：0-未知，1-男，2-女" align="center" prop="gender">
+        <template slot-scope="scope">
+            <dict-tag :options="sys_user_sex" :value="scope.row.gender"/>
+        </template>
+      </el-table-column>
       <el-table-column label="出生日期" align="center" prop="birthDate" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.birthDate, '{y}-{m}-{d}') }}</span>
@@ -139,6 +173,22 @@
     <!-- 添加或修改老师维护对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      <el-form-item v-if="renderField(true, true)" label="教师编号" prop="teacherNo">
+        <el-input v-model="form.teacherNo" placeholder="请输入教师编号" />
+      </el-form-item>
+      <el-form-item v-if="renderField(true, true)" label="姓名" prop="name">
+        <el-input v-model="form.name" placeholder="请输入姓名" />
+      </el-form-item>
+      <el-form-item v-if="renderField(true, true)" label="性别：0-未知，1-男，2-女" prop="gender">
+        <el-radio-group v-model="form.gender">
+          <el-radio
+            v-for="dict in dict.type.sys_user_sex"
+            :key="dict.value"
+            :label="parseInt(dict.value)"
+>
+{{ dict.label }}          </el-radio>
+        </el-radio-group>
+      </el-form-item>
       <el-form-item v-if="renderField(true, true)" label="出生日期" prop="birthDate">
         <el-date-picker clearable
           v-model="form.birthDate"
@@ -159,6 +209,11 @@
       <el-form-item v-if="renderField(true, true)" label="职称" prop="title">
         <el-input v-model="form.title" placeholder="请输入职称" />
       </el-form-item>
+      <el-form-item v-if="renderField(true, true)" label="状态：0-禁用，1-启用" prop="status">
+        <el-radio-group v-model="form.status">
+          <el-radio label="请选择字典生成" value="" />
+        </el-radio-group>
+      </el-form-item>
 
       </el-form>
       <template #footer>
@@ -176,6 +231,7 @@ import { listTeacher, getTeacher, delTeacher, addTeacher, updateTeacher } from "
 
 export default {
   name: "Teacher",
+  dicts: ['sys_user_sex'],
   data() {
     return {
       // 遮罩层
@@ -200,16 +256,32 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
+        teacherNo: null,
+        name: null,
+        gender: null,
         birthDate: null,
         phone: null,
         email: null,
         department: null,
         title: null,
+        status: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
+        teacherNo: [
+          { required: true, message: "教师编号不能为空", trigger: "blur" }
+        ],
+        name: [
+          { required: true, message: "姓名不能为空", trigger: "blur" }
+        ],
+        gender: [
+          { required: true, message: "性别：0-未知，1-男，2-女不能为空", trigger: "change" }
+        ],
+        status: [
+          { required: true, message: "状态：0-禁用，1-启用不能为空", trigger: "change" }
+        ],
       }
     };
   },
@@ -234,7 +306,6 @@ export default {
     /** 表单重置 */
     reset() {
       this.form = {
-        id: null,
         id: null,
         teacherNo: null,
         name: null,

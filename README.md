@@ -5,7 +5,7 @@
 <h4 align="center">基于RuoYi-Vue+FastAPI前后端分离的快速开发框架</h4>
 
 
-## 平台简介
+## 平台简介1
 
 RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个人及企业免费使用。
 
@@ -316,21 +316,35 @@ yarn dev:mp-weixin
 # 进入后端目录
 cd ruoyi-fastapi-backend
 
-# 如果使用的是MySQL数据库，请执行以下命令安装项目依赖环境
+# 根据使用的数据库类型安装依赖
+# 如果使用 MySQL 数据库（推荐）
 pip3 install -r requirements.txt
-# 如果使用的是PostgreSQL数据库，请执行以下命令安装项目依赖环境
+
+# 如果使用 PostgreSQL 数据库
 pip3 install -r requirements-pg.txt
 
 # 配置环境
-在.env.dev文件中配置开发环境的数据库和redis
+# 在 .env.dev 文件中配置开发环境的数据库和 redis
+# 重要：确保 DB_TYPE 配置正确
+# - 使用 MySQL：DB_TYPE=mysql
+# - 使用 PostgreSQL：DB_TYPE=postgresql
 
-# 运行sql文件
-1.新建数据库ruoyi-fastapi(默认，可修改)
-2.如果使用的是MySQL数据库，使用命令或数据库连接工具运行sql文件夹下的ruoyi-fastapi.sql；如果使用的是PostgreSQL数据库，使用命令或数据库连接工具运行sql文件夹下的ruoyi-fastapi-pg.sql
+# 运行 sql 文件
+# 1. 新建数据库 ruoyi-fastapi（默认，可修改）
+# 2. 根据数据库类型运行对应的 SQL 文件：
+#    - MySQL：运行 sql/ruoyi-fastapi.sql
+#    - PostgreSQL：运行 sql/ruoyi-fastapi-pg.sql
 
 # 运行后端
 python3 app.py --env=dev
 ```
+
+**⚠️ 重要提示：数据库驱动说明**
+
+- **MySQL 用户**：只需安装 `requirements.txt`，其中包含 `asyncmy` 和 `PyMySQL` 驱动
+- **PostgreSQL 用户**：需要安装 `requirements-pg.txt`，其中包含 `asyncpg` 和 `psycopg2` 驱动
+- **不要混装**：如果使用 MySQL，不需要安装 PostgreSQL 的驱动包，反之亦然
+- **环境变量配置**：确保 `.env.dev` 文件中的 `DB_TYPE` 与实际使用的数据库类型一致
 
 #### 访问
 
@@ -359,7 +373,8 @@ npm run build:prod
 
 ```bash
 # 配置环境
-在.env.prod文件中配置生产环境的数据库和redis
+# 在 .env.prod 文件中配置生产环境的数据库和 redis
+# 确保 DB_TYPE 配置正确（mysql 或 postgresql）
 
 # 运行后端
 python3 app.py --env=prod
@@ -380,4 +395,74 @@ docker compose -f docker-compose.my.yml up -d --build
 ```bash
 docker compose -f docker-compose.pg.yml up -d --build
 ```
+
+---
+
+## ❓ 常见问题
+
+### 1. 启动时提示需要安装 asyncpg
+
+**问题描述：**
+```
+ModuleNotFoundError: No module named 'asyncpg'
+```
+
+**原因：**
+- 你使用的是 MySQL 数据库，但安装了 PostgreSQL 的依赖包
+- 或者环境中混装了两种数据库的驱动
+
+**解决方案：**
+
+```bash
+# 方案一：重新安装正确的依赖（推荐）
+pip3 uninstall -y asyncpg psycopg2  # 卸载 PostgreSQL 驱动
+pip3 install -r requirements.txt     # 重新安装 MySQL 依赖
+
+# 方案二：使用虚拟环境（最佳实践）
+python3 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip3 install -r requirements.txt
+
+# 方案三：如果确实需要 PostgreSQL
+pip3 install -r requirements-pg.txt
+# 并确保 .env.dev 中 DB_TYPE=postgresql
+```
+
+**检查清单：**
+- [ ] 确认 `.env.dev` 中的 `DB_TYPE` 配置正确（mysql 或 postgresql）
+- [ ] 确认安装了对应数据库的依赖包
+- [ ] 确认数据库连接信息正确
+- [ ] 确认数据库服务已启动
+
+### 2. 数据库连接失败
+
+**检查项：**
+- 数据库服务是否启动
+- `.env.dev` 中的数据库配置是否正确
+- 数据库用户是否有足够的权限
+- 防火墙是否允许数据库端口访问
+
+### 3. Redis 连接失败
+
+**检查项：**
+- Redis 服务是否启动
+- `.env.dev` 中的 Redis 配置是否正确
+- Redis 密码是否正确（如果设置了密码）
+
+### 4. 前端无法访问后端接口
+
+**检查项：**
+- 后端服务是否正常启动
+- 前端 `.env` 文件中的 API 地址是否正确
+- 浏览器控制台是否有跨域错误
+- 网络防火墙是否阻止了请求
+
+---
+
+## 📞 技术支持
+
+如遇到其他问题，请：
+1. 查看项目文档和开发规则（`.kiro/steering/project-development-rules.md`）
+2. 查看日志文件（`logs/` 目录）
+3. 在 GitHub 提交 Issue：https://github.com/guanjiang1106/youchen/issues
 

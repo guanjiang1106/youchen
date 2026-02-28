@@ -158,7 +158,7 @@
     />
 
     <!-- 添加或修改参数配置对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="字典名称" prop="dictName">
           <el-input v-model="form.dictName" placeholder="请输入字典名称" />
@@ -178,6 +178,55 @@
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
         </el-form-item>
+        
+        <!-- 字典数据管理 -->
+        <el-divider v-if="form.dictId" content-position="left">字典数据</el-divider>
+        <div v-if="form.dictId">
+          <el-button type="primary" size="small" icon="el-icon-plus" @click="handleAddData" style="margin-bottom: 10px">新增字典数据</el-button>
+          <el-table :data="dictDataList" border size="small" max-height="300">
+            <el-table-column label="字典标签" prop="dictLabel" width="120">
+              <template slot-scope="scope">
+                <el-input v-if="scope.row.editing" v-model="scope.row.dictLabel" size="small" placeholder="请输入标签"></el-input>
+                <span v-else>{{ scope.row.dictLabel }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="字典键值" prop="dictValue" width="100">
+              <template slot-scope="scope">
+                <el-input v-if="scope.row.editing" v-model="scope.row.dictValue" size="small" placeholder="请输入键值"></el-input>
+                <span v-else>{{ scope.row.dictValue }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="排序" prop="dictSort" width="80">
+              <template slot-scope="scope">
+                <el-input-number v-if="scope.row.editing" v-model="scope.row.dictSort" size="small" :min="0" controls-position="right"></el-input-number>
+                <span v-else>{{ scope.row.dictSort }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="状态" prop="status" width="100">
+              <template slot-scope="scope">
+                <el-select v-if="scope.row.editing" v-model="scope.row.status" size="small">
+                  <el-option label="正常" value="0"></el-option>
+                  <el-option label="停用" value="1"></el-option>
+                </el-select>
+                <dict-tag v-else :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
+              </template>
+            </el-table-column>
+            <el-table-column label="备注" prop="remark" show-overflow-tooltip>
+              <template slot-scope="scope">
+                <el-input v-if="scope.row.editing" v-model="scope.row.remark" size="small" placeholder="请输入备注"></el-input>
+                <span v-else>{{ scope.row.remark }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="120" align="center">
+              <template slot-scope="scope">
+                <el-button v-if="scope.row.editing" type="text" size="small" @click="handleSaveData(scope.row, scope.$index)">保存</el-button>
+                <el-button v-if="scope.row.editing" type="text" size="small" @click="handleCancelData(scope.row, scope.$index)">取消</el-button>
+                <el-button v-if="!scope.row.editing" type="text" size="small" @click="handleEditData(scope.row)">编辑</el-button>
+                <el-button v-if="!scope.row.editing" type="text" size="small" @click="handleDeleteData(scope.row, scope.$index)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -189,6 +238,7 @@
 
 <script>
 import { listType, getType, delType, addType, updateType, refreshCache } from "@/api/system/dict/type";
+import { listData, getData, delData, addData, updateData } from "@/api/system/dict/data";
 
 export default {
   name: "Dict",
@@ -209,6 +259,10 @@ export default {
       total: 0,
       // 字典表格数据
       typeList: [],
+      // 字典数据列表
+      dictDataList: [],
+      // 字典数据备份（用于取消编辑）
+      dictDataBackup: {},
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -297,7 +351,82 @@ export default {
         this.form = response.data;
         this.open = true;
         this.title = "修改字典类型";
+        // 加载字典数据
+        this.getDictDataList(dictId);
       });
+    },
+    /** 获取字典数据列表 */
+    getDictDataList(dictId) {
+      listData({ dictType: this.form.dictType, pageNum: 1, pageSize: 100 }).then(response => {
+        this.dictDataList = response.rows.map(item => ({
+          ...item,
+          editing: false
+        }));
+      });
+    },
+    /** 新增字典数据 */
+    handleAddData() {
+      const newData = {
+        dictCode: null,
+        dictLabel: '',
+        dictValue: '',
+        dictType: this.form.dictType,
+        dictSort: this.dictDataList.length + 1,
+        status: '0',
+        remark: '',
+        editing: true,
+        isNew: true
+      };
+      this.dictDataList.push(newData);
+    },
+    /** 编辑字典数据 */
+    handleEditData(row) {
+      // 备份原始数据
+      this.dictDataBackup[row.dictCode] = { ...row };
+      this.$set(row, 'editing', true);
+    },
+    /** 保存字典数据 */
+    handleSaveData(row, index) {
+      if (!row.dictLabel || !row.dictValue) {
+        this.$modal.msgWarning("字典标签和键值不能为空");
+        return;
+      }
+      
+      if (row.isNew) {
+        // 新增
+        addData(row).then(response => {
+          this.$modal.msgSuccess("新增成功");
+          this.getDictDataList(this.form.dictId);
+        });
+      } else {
+        // 修改
+        updateData(row).then(response => {
+          this.$modal.msgSuccess("修改成功");
+          this.$set(row, 'editing', false);
+          delete this.dictDataBackup[row.dictCode];
+        });
+      }
+    },
+    /** 取消编辑字典数据 */
+    handleCancelData(row, index) {
+      if (row.isNew) {
+        // 新增的直接删除
+        this.dictDataList.splice(index, 1);
+      } else {
+        // 恢复原始数据
+        Object.assign(row, this.dictDataBackup[row.dictCode]);
+        this.$set(row, 'editing', false);
+        delete this.dictDataBackup[row.dictCode];
+      }
+    },
+    /** 删除字典数据 */
+    handleDeleteData(row, index) {
+      this.$modal.confirm('是否确认删除字典标签为"' + row.dictLabel + '"的数据项？').then(() => {
+        return delData(row.dictCode);
+      }).then(() => {
+        this.dictDataList.splice(index, 1);
+        this.$modal.msgSuccess("删除成功");
+      }).catch(() => {});
     },
     /** 提交按钮 */
     submitForm: function() {

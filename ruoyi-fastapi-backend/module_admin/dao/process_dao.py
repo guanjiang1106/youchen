@@ -97,7 +97,7 @@ class ProcessDao:
         :param process: 工艺对象
         :return:
         """
-        db_process = Process(**process.model_dump(exclude={}))
+        db_process = Process(**process.model_dump(exclude={'sequence_order', 'standard_time', 'required_tooling', }))
         db.add(db_process)
         await db.flush()
 

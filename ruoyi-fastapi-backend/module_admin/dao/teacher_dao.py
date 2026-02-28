@@ -75,11 +75,15 @@ class TeacherDao:
         query = (
             select(Teacher)
             .where(
+                Teacher.teacher_no == query_object.teacher_no if query_object.teacher_no else True,
+                Teacher.name.like(f'%{query_object.name}%') if query_object.name else True,
+                Teacher.gender == query_object.gender if query_object.gender else True,
                 Teacher.birth_date == query_object.birth_date if query_object.birth_date else True,
                 Teacher.phone == query_object.phone if query_object.phone else True,
                 Teacher.email == query_object.email if query_object.email else True,
                 Teacher.department == query_object.department if query_object.department else True,
                 Teacher.title == query_object.title if query_object.title else True,
+                Teacher.status == query_object.status if query_object.status else True,
             )
             .order_by(Teacher.id)
             .distinct()

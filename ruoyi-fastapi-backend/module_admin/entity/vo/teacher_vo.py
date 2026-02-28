@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
+from pydantic_validation_decorator import NotBlank
 
 
 
@@ -12,7 +13,6 @@ class TeacherModel(BaseModel):
     """
     model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
 
-    id: int | None = Field(default=None, description='主键 ID')
     id: int | None = Field(default=None, description='主键 ID')
     teacher_no: str | None = Field(default=None, description='教师编号')
     name: str | None = Field(default=None, description='姓名')
@@ -26,7 +26,28 @@ class TeacherModel(BaseModel):
     create_time: datetime | None = Field(default=None, description='创建时间')
     update_time: datetime | None = Field(default=None, description='更新时间')
 
+    @NotBlank(field_name='teacher_no', message='教师编号不能为空')
+    def get_teacher_no(self) -> str | None:
+        return self.teacher_no
 
+    @NotBlank(field_name='name', message='姓名不能为空')
+    def get_name(self) -> str | None:
+        return self.name
+
+    @NotBlank(field_name='gender', message='性别：0-未知，1-男，2-女不能为空')
+    def get_gender(self) -> int | None:
+        return self.gender
+
+    @NotBlank(field_name='status', message='状态：0-禁用，1-启用不能为空')
+    def get_status(self) -> int | None:
+        return self.status
+
+
+    def validate_fields(self) -> None:
+        self.get_teacher_no()
+        self.get_name()
+        self.get_gender()
+        self.get_status()
 
 
 

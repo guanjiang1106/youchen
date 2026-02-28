@@ -1,5 +1,6 @@
 from typing import Any
 
+from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from common.constant import CommonConstant
@@ -7,6 +8,7 @@ from common.vo import CrudResponseModel, PageModel
 from exceptions.exception import ServiceException
 from module_admin.dao.teacher_dao import TeacherDao
 from module_admin.entity.vo.teacher_vo import DeleteTeacherModel, TeacherModel, TeacherPageQueryModel
+from module_admin.service.dict_service import DictDataService
 from utils.common_util import CamelCaseUtil
 from utils.excel_util import ExcelUtil
 
@@ -109,7 +111,7 @@ class TeacherService:
         return result
 
     @staticmethod
-    async def export_teacher_list_services(teacher_list: list) -> bytes:
+    async def export_teacher_list_services(request: Request, teacher_list: list) -> bytes:
         """
         导出老师维护信息service
 
@@ -118,7 +120,6 @@ class TeacherService:
         """
         # 创建一个映射字典，将英文键映射到中文键
         mapping_dict = {
-            'id': '主键 ID',
             'id': '主键 ID',
             'teacherNo': '教师编号',
             'name': '姓名',
@@ -132,6 +133,14 @@ class TeacherService:
             'createTime': '创建时间',
             'updateTime': '更新时间',
         }
+        sys_user_sex_list = await DictDataService.query_dict_data_list_from_cache_services(
+            request.app.state.redis, dict_type='sys_user_sex'
+        )
+        sys_user_sex_option = [{'label': item.get('dictLabel'), 'value': item.get('dictValue')} for item in sys_user_sex_list]
+        sys_user_sex_option_dict = {item.get('value'): item for item in sys_user_sex_option}
+        for item in teacher_list:
+            if str(item.get('gender')) in sys_user_sex_option_dict:
+                item['gender'] = sys_user_sex_option_dict.get(str(item.get('gender'))).get('label')
         binary_data = ExcelUtil.export_list2excel(teacher_list, mapping_dict)
 
         return binary_data
