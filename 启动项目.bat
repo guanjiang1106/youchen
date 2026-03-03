@@ -1,45 +1,51 @@
 @echo off
-chcp 65001 >nul
-title RuoYi-FastAPI ????
+title RuoYi-FastAPI Project
 color 0A
 
 echo.
 echo ========================================
-echo    RuoYi-FastAPI ????
+echo    RuoYi-FastAPI Startup
 echo ========================================
 echo.
 
-REM ????? Redis
-echo [1/3] ?? Redis ??...
+REM Check Redis
+echo [1/3] Checking Redis...
 echo.
 
 tasklist | find /i "redis-server.exe" >nul
 if %errorlevel% equ 0 (
-    echo [] Redis ???
+    echo [OK] Redis is running
     goto :start_backend
 )
 
-echo [!] Redis ????????...
+echo [!] Redis not running, starting...
 echo.
 
-pushd "D:\Program Files\Redis-x64-5.0.14.1"
-if exist redis-server.exe (
-    echo [] ?? Redis
-    start "Redis ??" redis-server.exe
-    popd
-    timeout /t 3 /nobreak >nul
-    
-    tasklist | find /i "redis-server.exe" >nul
-    if %errorlevel% equ 0 (
-        echo [] Redis ????
-    ) else (
-        echo [] Redis ????
-        pause
-        exit /b 1
-    )
+REM Try common Redis paths
+set "REDIS_PATH="
+if exist "D:\Program Files\Redis-x64-5.0.14.1\redis-server.exe" set "REDIS_PATH=D:\Program Files\Redis-x64-5.0.14.1"
+if exist "C:\Program Files\Redis\redis-server.exe" set "REDIS_PATH=C:\Program Files\Redis"
+if exist "C:\Redis\redis-server.exe" set "REDIS_PATH=C:\Redis"
+
+if "%REDIS_PATH%"=="" (
+    echo [ERROR] Redis not found. Please install Redis or start it manually.
+    echo.
+    echo Continue without Redis? Backend will fail if Redis is required.
+    pause
+    goto :start_backend
+)
+
+pushd "%REDIS_PATH%"
+echo [OK] Starting Redis from: %REDIS_PATH%
+start "Redis Service" redis-server.exe
+popd
+timeout /t 3 /nobreak >nul
+
+tasklist | find /i "redis-server.exe" >nul
+if %errorlevel% equ 0 (
+    echo [OK] Redis started successfully
 ) else (
-    echo [] ??? Redis
-    popd
+    echo [ERROR] Redis failed to start
     pause
     exit /b 1
 )
@@ -49,37 +55,37 @@ echo.
 echo ========================================
 echo.
 
-REM ????
-echo [2/3] ??????...
+REM Start Backend
+echo [2/3] Starting Backend...
 echo.
 
-start "????" cmd /k "cd /d %~dp0ruoyi-fastapi-backend && color 0E && python app.py --env=dev"
+start "Backend Service" cmd /k "cd /d %~dp0ruoyi-fastapi-backend && color 0E && python app.py --env=dev"
 
-echo [] ?????????
-echo     ????????15??...
+echo [OK] Backend starting...
+echo     Wait for initialization (about 15 seconds)...
 timeout /t 15 /nobreak >nul
 
 echo.
 echo ========================================
 echo.
 
-REM ????
-echo [3/3] ??????...
+REM Start Frontend
+echo [3/3] Starting Frontend...
 echo.
 
-start "????" cmd /k "cd /d %~dp0ruoyi-fastapi-frontend && color 0B && npm run dev"
+start "Frontend Service" cmd /k "cd /d %~dp0ruoyi-fastapi-frontend && color 0B && npm run dev"
 
-echo [] ?????????
+echo [OK] Frontend starting...
 
 echo.
 echo ========================================
-echo    ?????
+echo    Startup Complete!
 echo ========================================
 echo.
-echo ??: http://localhost:80
-echo ??: http://localhost:9099
-echo ??: http://localhost:9099/docs
+echo Frontend: http://localhost:80
+echo Backend:  http://localhost:9099
+echo API Docs: http://localhost:9099/docs
 echo.
-echo ??: admin / ??: admin123
+echo Account: admin / Password: admin123
 echo.
 pause

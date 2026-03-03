@@ -17,8 +17,8 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="性别：0-未知，1-男，2-女" prop="gender">
-        <el-select v-model="queryParams.gender" placeholder="请选择性别：0-未知，1-男，2-女" clearable>
+      <el-form-item label="性别" prop="gender">
+        <el-select v-model="queryParams.gender" placeholder="请选择性别" clearable>
           <el-option
             v-for="dict in dict.type.sys_user_sex"
             :key="dict.value"
@@ -68,9 +68,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="状态：0-禁用，1-启用" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择状态：0-禁用，1-启用" clearable>
-          <el-option label="请选择字典生成" value="" />
+      <el-form-item label="状态" prop="status">
+        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+          <el-option
+            v-for="dict in dict.type.sys_normal_disable"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -119,6 +124,15 @@
           v-hasPermi="['module_admin:teacher:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="info"
+          plain
+          icon="el-icon-connection"
+          @click="handleGenerateRandom"
+          v-hasPermi="['module_admin:teacher:random']"
+        >随机生成</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -127,7 +141,7 @@
       <el-table-column label="主键 ID" align="center" prop="id" />
       <el-table-column label="教师编号" align="center" prop="teacherNo" />
       <el-table-column label="姓名" align="center" prop="name" />
-      <el-table-column label="性别：0-未知，1-男，2-女" align="center" prop="gender">
+      <el-table-column label="性别" align="center" prop="gender">
         <template slot-scope="scope">
             <dict-tag :options="sys_user_sex" :value="scope.row.gender"/>
         </template>
@@ -141,7 +155,11 @@
       <el-table-column label="电子邮箱" align="center" prop="email" />
       <el-table-column label="所属部门" align="center" prop="department" />
       <el-table-column label="职称" align="center" prop="title" />
-      <el-table-column label="状态：0-禁用，1-启用" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+        <template slot-scope="scope">
+            <dict-tag :options="sys_normal_disable" :value="scope.row.status"/>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -179,14 +197,13 @@
       <el-form-item v-if="renderField(true, true)" label="姓名" prop="name">
         <el-input v-model="form.name" placeholder="请输入姓名" />
       </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="性别：0-未知，1-男，2-女" prop="gender">
+      <el-form-item v-if="renderField(true, true)" label="性别" prop="gender">
         <el-radio-group v-model="form.gender">
           <el-radio
             v-for="dict in dict.type.sys_user_sex"
             :key="dict.value"
             :label="parseInt(dict.value)"
->
-{{ dict.label }}          </el-radio>
+          >{{ dict.label }}</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item v-if="renderField(true, true)" label="出生日期" prop="birthDate">
@@ -209,12 +226,15 @@
       <el-form-item v-if="renderField(true, true)" label="职称" prop="title">
         <el-input v-model="form.title" placeholder="请输入职称" />
       </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="状态：0-禁用，1-启用" prop="status">
+      <el-form-item v-if="renderField(true, true)" label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio label="请选择字典生成" value="" />
+          <el-radio
+            v-for="dict in dict.type.sys_normal_disable"
+            :key="dict.value"
+            :label="parseInt(dict.value)"
+          >{{ dict.label }}</el-radio>
         </el-radio-group>
       </el-form-item>
-
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -223,15 +243,30 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 随机生成数据对话框 -->
+    <el-dialog title="随机生成数据" :visible.sync="openRandom" width="400px" append-to-body>
+      <el-form ref="randomForm" :model="randomForm" :rules="randomRules" label-width="100px">
+        <el-form-item label="生成数量" prop="count">
+          <el-input-number v-model="randomForm.count" :min="1" :max="100" step="1" style="width: 100%;" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitRandomForm">确 定</el-button>
+          <el-button @click="cancelRandom">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listTeacher, getTeacher, delTeacher, addTeacher, updateTeacher } from "@/api/module_admin/teacher";
+import { listTeacher, getTeacher, delTeacher, addTeacher, updateTeacher, generateRandomTeacher } from "@/api/module_admin/teacher";
 
 export default {
   name: "Teacher",
-  dicts: ['sys_user_sex'],
+  dicts: ['sys_user_sex', 'sys_normal_disable'],
   data() {
     return {
       // 遮罩层
@@ -252,6 +287,10 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 是否显示随机生成弹出层
+      openRandom: false,
+      // 当前激活的标签页
+      activeTabName: 'basic',
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -268,6 +307,10 @@ export default {
       },
       // 表单参数
       form: {},
+      // 随机生成表单参数
+      randomForm: {
+        count: 10
+      },
       // 表单校验
       rules: {
         teacherNo: [
@@ -277,11 +320,18 @@ export default {
           { required: true, message: "姓名不能为空", trigger: "blur" }
         ],
         gender: [
-          { required: true, message: "性别：0-未知，1-男，2-女不能为空", trigger: "change" }
+          { required: true, message: "性别不能为空", trigger: "change" }
         ],
         status: [
-          { required: true, message: "状态：0-禁用，1-启用不能为空", trigger: "change" }
+          { required: true, message: "状态不能为空", trigger: "change" }
         ],
+      },
+      // 随机生成表单校验
+      randomRules: {
+        count: [
+          { required: true, message: "生成数量不能为空", trigger: "blur" },
+          { type: 'number', min: 1, max: 100, message: "数量必须在 1-100 之间", trigger: "blur" }
+        ]
       }
     };
   },
@@ -302,6 +352,12 @@ export default {
     cancel() {
       this.open = false;
       this.reset();
+    },
+    /** 取消随机生成按钮 */
+    cancelRandom() {
+      this.openRandom = false;
+      this.randomForm = { count: 10 };
+      this.resetForm("randomForm");
     },
     /** 表单重置 */
     reset() {
@@ -340,12 +396,14 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
+      this.activeTabName = 'basic';
       this.open = true;
       this.title = "添加老师维护";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
+      this.activeTabName = 'basic';
       const id = row.id || this.ids;
       getTeacher(id).then(response => {
         this.form = response.data;
@@ -372,6 +430,22 @@ export default {
           }
         }
       });
+    },
+    /** 提交随机生成表单 */
+    submitRandomForm() {
+      this.$refs["randomForm"].validate(valid => {
+        if (valid) {
+          generateRandomTeacher(this.randomForm.count).then(response => {
+            this.$modal.msgSuccess(response.msg);
+            this.openRandom = false;
+            this.getList();
+          });
+        }
+      });
+    },
+    /** 随机生成按钮操作 */
+    handleGenerateRandom() {
+      this.openRandom = true;
     },
     /** 删除按钮操作 */
     handleDelete(row) {

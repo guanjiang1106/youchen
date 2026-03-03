@@ -141,14 +141,17 @@ class {{ BusinessName }}QueryModel({% if table.sub %}{{ BusinessName }}BaseModel
     """
     {{ functionName }}不分页查询模型
     """
+    {% set has_daterange_fields = namespace(found=False) %}
     {% if vo_field_daterange.has_daterange %}
     {% for column in columns %}
     {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
+    {% set has_daterange_fields.found = True %}
     begin_{{ column.column_name  }}: str | None = Field(default=None, description='开始{{ column.column_comment }}')
     end_{{ column.column_name  }}: str | None = Field(default=None, description='结束{{ column.column_comment }}')
     {% endif %}
     {% endfor %}
-    {% else %}
+    {% endif %}
+    {% if not has_daterange_fields.found %}
     pass
     {% endif %}
 

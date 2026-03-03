@@ -404,6 +404,7 @@ class LogAggregatorService:
     async def _claim_pending(cls, redis: aioredis.Redis, consumer_name: str) -> None:
         """
         认领并处理超时未确认的消息
+        兼容 Redis 5.x 和 6.x+
 
         :param redis: Redis连接对象
         :param consumer_name: 消费者名称
@@ -411,24 +412,81 @@ class LogAggregatorService:
         """
         if LogConfig.log_stream_claim_idle_ms <= 0:
             return
-        start_id = '0-0'
-        while True:
-            result = await redis.xautoclaim(
+        
+        try:
+            # 尝试使用 XAUTOCLAIM (Redis 6.2+)
+            start_id = '0-0'
+            while True:
+                result = await redis.xautoclaim(
+                    name=LogConfig.log_stream_key,
+                    groupname=LogConfig.log_stream_group,
+                    consumername=consumer_name,
+                    min_idle_time=LogConfig.log_stream_claim_idle_ms,
+                    start_id=start_id,
+                    count=LogConfig.log_stream_claim_batch_size,
+                )
+                if not result:
+                    return
+                next_start_id, messages = result[0], result[1]
+                if messages:
+                    await cls._process_messages(redis, LogConfig.log_stream_key, messages)
+                if not messages or next_start_id == start_id:
+                    return
+                start_id = next_start_id
+        except Exception as e:
+            # 如果 XAUTOCLAIM 不支持，使用 XPENDING + XCLAIM (Redis 5.x)
+            if 'unknown command' in str(e).lower() or 'xautoclaim' in str(e).lower():
+                await cls._claim_pending_legacy(redis, consumer_name)
+            else:
+                raise
+
+    @classmethod
+    async def _claim_pending_legacy(cls, redis: aioredis.Redis, consumer_name: str) -> None:
+        """
+        使用 XPENDING + XCLAIM 认领超时消息（兼容 Redis 5.x）
+
+        :param redis: Redis连接对象
+        :param consumer_name: 消费者名称
+        :return: None
+        """
+        try:
+            # 获取待处理的消息
+            pending = await redis.xpending_range(
+                name=LogConfig.log_stream_key,
+                groupname=LogConfig.log_stream_group,
+                min='-',
+                max='+',
+                count=LogConfig.log_stream_claim_batch_size,
+                consumername=None,
+            )
+            
+            if not pending:
+                return
+            
+            # 筛选超时的消息
+            claim_ids = []
+            for msg in pending:
+                # msg 格式: {'message_id': str, 'consumer': str, 'time_since_delivered': int, 'times_delivered': int}
+                if msg['time_since_delivered'] >= LogConfig.log_stream_claim_idle_ms:
+                    claim_ids.append(msg['message_id'])
+            
+            if not claim_ids:
+                return
+            
+            # 认领消息
+            messages = await redis.xclaim(
                 name=LogConfig.log_stream_key,
                 groupname=LogConfig.log_stream_group,
                 consumername=consumer_name,
                 min_idle_time=LogConfig.log_stream_claim_idle_ms,
-                start_id=start_id,
-                count=LogConfig.log_stream_claim_batch_size,
+                message_ids=claim_ids,
             )
-            if not result:
-                return
-            next_start_id, messages = result[0], result[1]
+            
             if messages:
                 await cls._process_messages(redis, LogConfig.log_stream_key, messages)
-            if not messages or next_start_id == start_id:
-                return
-            start_id = next_start_id
+        except Exception as e:
+            # 静默处理，避免影响主流程
+            logger.debug(f'认领超时消息失败: {e}')
 
     @classmethod
     async def consume_stream(cls, redis: aioredis.Redis) -> None:

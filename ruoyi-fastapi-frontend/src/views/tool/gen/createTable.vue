@@ -23,7 +23,7 @@
           <el-input
             type="textarea"
             :rows="8"
-            placeholder="请描述您想要创建的表，例如：&#10;创建一个用户积分表，包含用户ID、积分数量、获取时间、积分来源等字段"
+            placeholder="请描述您想要创建的表，例如：&#10;创建一个用户积分表，包含用户ID、积分数量、获取时间、积分来源等字段&#10;&#10;💡 建议：除主键外，其他字段尽量不要设置为必填（NOT NULL），以提高系统灵活性"
             v-model="form.requirement"
           ></el-input>
         </el-form-item>

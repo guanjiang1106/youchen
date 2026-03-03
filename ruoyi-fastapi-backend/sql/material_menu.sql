@@ -4,7 +4,7 @@ DECLARE
 BEGIN
     -- 菜单 SQL
     insert into sys_menu (menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
-    values('物料', '2000', '1', 'material', 'module_admin/material/index', 1, 0, 'C', '0', '0', 'module_admin:material:list', '#', 'admin', current_timestamp, '', null, '物料菜单')
+    values('物料', '2008', '1', 'material', 'module_admin/material/index', 1, 0, 'C', '0', '0', 'module_admin:material:list', '#', 'admin', current_timestamp, '', null, '物料菜单')
     returning menu_id into parentId;
 
     -- 按钮 SQL

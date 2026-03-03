@@ -35,7 +35,7 @@ teacher_controller = APIRouterPro(
 )
 async def get_module_admin_teacher_list(
     request: Request,
-teacher_page_query: Annotated[TeacherPageQueryModel, Query()],
+    teacher_page_query: Annotated[TeacherPageQueryModel, Query()],
     query_db: Annotated[AsyncSession, DBSessionDependency()],
 ) -> Response:
     # 获取分页数据
@@ -123,7 +123,7 @@ async def query_detail_module_admin_teacher(
     query_db: Annotated[AsyncSession, DBSessionDependency()],
 ) -> Response:
     teacher_detail_result = await TeacherService.teacher_detail_services(query_db, id)
-    logger.info(f'获取id为{id}的信息成功')
+    logger.info(f'获取 id 为{id}的信息成功')
 
     return ResponseUtil.success(data=teacher_detail_result)
 
@@ -135,7 +135,7 @@ async def query_detail_module_admin_teacher(
     response_class=StreamingResponse,
     responses={
         200: {
-            'description': '流式返回老师维护列表excel文件',
+            'description': '流式返回老师维护列表 excel 文件',
             'content': {
                 'application/octet-stream': {},
             },
@@ -155,3 +155,21 @@ async def export_module_admin_teacher_list(
     logger.info('导出成功')
 
     return ResponseUtil.streaming(data=bytes2file_response(teacher_export_result))
+
+
+@teacher_controller.post(
+    '/generate',
+    summary='随机生成老师维护数据接口',
+    description='用于随机生成指定数量的老师维护数据',
+    response_model=ResponseBaseModel,
+    dependencies=[UserInterfaceAuthDependency('module_admin:teacher:random')],
+)
+@Log(title='老师维护', business_type=BusinessType.INSERT)
+async def generate_random_teacher_data(
+    request: Request,
+    query_db: Annotated[AsyncSession, DBSessionDependency()],
+    count: Annotated[int, Form(ge=1, le=100, description='生成数据数量')] = 10,
+) -> Response:
+    result = await TeacherService.generate_random_teacher_services(query_db, count)
+    logger.info(result.message)
+    return ResponseUtil.success(msg=result.message)

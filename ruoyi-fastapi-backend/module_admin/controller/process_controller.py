@@ -151,7 +151,7 @@ async def export_module_admin_process_list(
 ) -> Response:
     # 获取全量数据
     process_query_result = await ProcessService.get_process_list_services(query_db, process_page_query, is_page=False)
-    process_export_result = await ProcessService.export_process_list_services(process_query_result)
+    process_export_result = await ProcessService.export_process_list_services(request, process_query_result)
     logger.info('导出成功')
 
     return ResponseUtil.streaming(data=bytes2file_response(process_export_result))

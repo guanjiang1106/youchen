@@ -3,6 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
+from pydantic_validation_decorator import NotBlank
 
 
 
@@ -22,12 +23,28 @@ class MaterialModel(BaseModel):
     stock_quantity: Decimal | None = Field(default=None, description='库存数量')
     safety_stock: Decimal | None = Field(default=None, description='安全库存')
     price: Decimal | None = Field(default=None, description='参考单价')
-    status: int | None = Field(default=None, description='状态：1-启用，0-禁用')
+    status: int | None = Field(default=None, description='状态')
     remark: str | None = Field(default=None, description='备注')
     create_time: datetime | None = Field(default=None, description='创建时间')
     update_time: datetime | None = Field(default=None, description='更新时间')
 
+    @NotBlank(field_name='material_code', message='物料编码不能为空')
+    def get_material_code(self) -> str | None:
+        return self.material_code
 
+    @NotBlank(field_name='material_name', message='物料名称不能为空')
+    def get_material_name(self) -> str | None:
+        return self.material_name
+
+    @NotBlank(field_name='status', message='状态不能为空')
+    def get_status(self) -> int | None:
+        return self.status
+
+
+    def validate_fields(self) -> None:
+        self.get_material_code()
+        self.get_material_name()
+        self.get_status()
 
 
 

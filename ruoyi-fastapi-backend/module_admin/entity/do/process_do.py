@@ -1,4 +1,4 @@
-from sqlalchemy import Text, DateTime, String, SmallInteger, Column, Integer, BigInteger, Numeric
+from sqlalchemy import Text, SmallInteger, Integer, Numeric, Column, DateTime, String, BigInteger
 
 from config.database import Base
 
@@ -19,7 +19,7 @@ class Process(Base):
     sequence_order = Column(Integer, primary_key=True, nullable=False, comment='工序顺序')
     standard_time = Column(Numeric, nullable=True, comment='标准工时（分钟）')
     required_tooling = Column(String, nullable=True, comment='所需工装夹具')
-    status = Column(SmallInteger, primary_key=True, nullable=False, comment='状态：1-启用，0-禁用')
+    status = Column(SmallInteger, primary_key=True, nullable=False, comment='状态')
     create_time = Column(DateTime, nullable=True, comment='创建时间')
     update_time = Column(DateTime, nullable=True, comment='更新时间')
 

@@ -2,20 +2,24 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="物料编码" prop="materialCode">
-        <el-input
-          v-model="queryParams.materialCode"
-          placeholder="请输入物料编码"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        <el-select v-model="queryParams.materialCode" placeholder="请选择物料编码" clearable>
+          <el-option
+            v-for="item in materialCodeOptions"
+            :key="item.name"
+            :label="item.teacher_no"
+            :value="item.name"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="物料名称" prop="materialName">
-        <el-input
-          v-model="queryParams.materialName"
-          placeholder="请输入物料名称"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        <el-select v-model="queryParams.materialName" placeholder="请选择物料名称" clearable>
+          <el-option
+            v-for="item in materialNameOptions"
+            :key="item.name"
+            :label="item.teacher_no"
+            :value="item.name"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="规格型号" prop="specification">
         <el-input
@@ -111,7 +115,11 @@
       <el-table-column label="库存数量" align="center" prop="stockQuantity" />
       <el-table-column label="安全库存" align="center" prop="safetyStock" />
       <el-table-column label="参考单价" align="center" prop="price" />
-      <el-table-column label="状态：1-启用，0-禁用" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status">
+        <template slot-scope="scope">
+            <dict-tag :options="sys_normal_disable" :value="scope.row.status"/>
+        </template>
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
@@ -145,18 +153,32 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
       <el-form-item v-if="renderField(true, true)" label="物料编码" prop="materialCode">
-        <el-input v-model="form.materialCode" placeholder="请输入物料编码" />
+        <el-select v-model="form.materialCode" placeholder="请选择物料编码">
+          <el-option
+            v-for="item in materialCodeOptions"
+            :key="item.name"
+            :label="item.teacher_no"
+            :value="item.name"
+          ></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item v-if="renderField(true, true)" label="物料名称" prop="materialName">
-        <el-input v-model="form.materialName" placeholder="请输入物料名称" />
+        <el-select v-model="form.materialName" placeholder="请选择物料名称">
+          <el-option
+            v-for="item in materialNameOptions"
+            :key="item.name"
+            :label="item.teacher_no"
+            :value="item.name"
+          ></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item v-if="renderField(true, true)" label="规格型号" prop="specification">
         <el-input v-model="form.specification" placeholder="请输入规格型号" />
       </el-form-item>
-      <el-form-item v-if="renderField(false, true)" label="计量单位" prop="unit">
+      <el-form-item v-if="renderField(true, true)" label="计量单位" prop="unit">
         <el-input v-model="form.unit" placeholder="请输入计量单位" />
       </el-form-item>
-      <el-form-item v-if="renderField(false, true)" label="分类 ID" prop="categoryId">
+      <el-form-item v-if="renderField(true, true)" label="分类 ID" prop="categoryId">
         <el-input v-model="form.categoryId" placeholder="请输入分类 ID" />
       </el-form-item>
       <el-form-item v-if="renderField(true, true)" label="状态" prop="status">
@@ -164,15 +186,14 @@
           <el-radio
             v-for="dict in dict.type.sys_normal_disable"
             :key="dict.value"
-            :label="parseInt(dict.value)">
-            {{ dict.label }}
-          </el-radio>
+            :label="parseInt(dict.value)"
+>
+{{ dict.label }}          </el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item v-if="renderField(true, true)" label="备注" prop="remark">
         <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
       </el-form-item>
-
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -186,10 +207,11 @@
 
 <script>
 import { listMaterial, getMaterial, delMaterial, addMaterial, updateMaterial } from "@/api/module_admin/material";
+import { listTeacher } from "@/api/module_admin/teacher";
 
 export default {
   name: "Material",
-  dicts: ['sys_normal_disable'],  // 使用系统内置的正常/停用字典
+  dicts: ['sys_normal_disable'],
   data() {
     return {
       // 遮罩层
@@ -210,6 +232,8 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 当前激活的标签页
+      activeTabName: 'basic',
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -226,24 +250,42 @@ export default {
       },
       // 表单参数
       form: {},
+      // 物料编码关联表选项
+      materialCodeOptions: [],
+      // 物料名称关联表选项
+      materialNameOptions: [],
       // 表单校验
       rules: {
         materialCode: [
-          { required: true, message: "物料编码不能为空", trigger: "blur" }
+          { required: true, message: "物料编码不能为空", trigger: "change" }
         ],
         materialName: [
-          { required: true, message: "物料名称不能为空", trigger: "blur" }
+          { required: true, message: "物料名称不能为空", trigger: "change" }
         ],
         status: [
           { required: true, message: "状态不能为空", trigger: "change" }
-        ]
+        ],
       }
     };
   },
   created() {
     this.getList();
+    this.getMaterialCodeOptions();
+    this.getMaterialNameOptions();
   },
   methods: {
+    /** 查询物料编码关联表选项 */
+    getMaterialCodeOptions() {
+      listTeacher({ pageNum: 1, pageSize: 1000 }).then(response => {
+        this.materialCodeOptions = response.rows;
+      });
+    },
+    /** 查询物料名称关联表选项 */
+    getMaterialNameOptions() {
+      listTeacher({ pageNum: 1, pageSize: 1000 }).then(response => {
+        this.materialNameOptions = response.rows;
+      });
+    },
     /** 查询物料列表 */
     getList() {
       this.loading = true;
@@ -270,7 +312,7 @@ export default {
         stockQuantity: null,
         safetyStock: null,
         price: null,
-        status: 1,  // 默认启用
+        status: null,
         remark: null,
         createTime: null,
         updateTime: null,
@@ -296,12 +338,14 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
+      this.activeTabName = 'basic';
       this.open = true;
       this.title = "添加物料";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
+      this.activeTabName = 'basic';
       const id = row.id || this.ids;
       getMaterial(id).then(response => {
         this.form = response.data;

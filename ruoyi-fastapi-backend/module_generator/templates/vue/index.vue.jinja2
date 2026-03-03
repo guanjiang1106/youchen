@@ -27,7 +27,18 @@
           />
         </el-select>
       </el-form-item>
-      {% elif (column.html_type == "select" or column.html_type == "radio") and not dictType %}
+      {% elif (column.html_type == "select" or column.html_type == "radio") and column.link_table %}
+      <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+        <el-select v-model="queryParams.{{ column.python_field }}" placeholder="请选择{{ comment }}" clearable>
+          <el-option
+            v-for="item in {{ column.python_field }}Options"
+            :key="item.{{ column.link_value_field }}"
+            :label="item.{{ column.link_label_field }}"
+            :value="item.{{ column.link_value_field }}"
+          />
+        </el-select>
+      </el-form-item>
+      {% elif (column.html_type == "select" or column.html_type == "radio") and not dictType and not column.link_table %}
       <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
         <el-select v-model="queryParams.{{ column.python_field }}" placeholder="请选择{{ comment }}" clearable>
           <el-option label="请选择字典生成" value="" />
@@ -114,21 +125,21 @@
       {% set parentheseIndex = column.column_comment.find("（") %}
       {% set comment = column.column_comment[:parentheseIndex] if parentheseIndex != -1 else column.column_comment %}
       {% if column.pk %}
-      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}" />
+      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}"{% if column.list_width %} width="{{ column.list_width }}"{% endif %} />
       {% elif column.list and column.html_type == "datetime" %}
-      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}" width="180">
+      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}" width="{% if column.list_width %}{{ column.list_width }}{% else %}180{% endif %}">
         <template slot-scope="scope">
           <span>{% raw %}{{{% endraw %} parseTime(scope.row.{{ pythonField }}, '{y}-{m}-{d}') {% raw %}}}{% endraw %}</span>
         </template>
       </el-table-column>
       {% elif column.list and column.html_type == "imageUpload" %}
-      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}" width="100">
+      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}" width="{% if column.list_width %}{{ column.list_width }}{% else %}100{% endif %}">
         <template slot-scope="scope">
           <image-preview :src="scope.row.{{ pythonField }}" :width="50" :height="50"/>
         </template>
       </el-table-column>
       {% elif column.list and column.dict_type %}
-      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}">
+      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}"{% if column.list_width %} width="{{ column.list_width }}"{% endif %}>
         <template slot-scope="scope">
           {% if column.html_type == "checkbox" %}
             <dict-tag :options="{{ column.dict_type }}" :value="scope.row.{{ pythonField }} ? scope.row.{{ pythonField }}.split(',') : []"/>
@@ -138,7 +149,7 @@
         </template>
       </el-table-column>
       {% elif column.list and pythonField %}
-      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}" />
+      <el-table-column label="{{ comment }}" align="center" prop="{{ pythonField }}"{% if column.list_width %} width="{{ column.list_width }}"{% endif %} />
       {% endif %}
       {% endfor %}
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -171,11 +182,15 @@
 
     <!-- 添加或修改{{ functionName }}对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-      {% for column in columns %}
-      {% set field = column.python_field %}
-      {% if (column.insert or column.edit) and not column.pk and column.column_name not in column_not_add_show + column_not_edit_show %}
-      {% if column.usable_column or not column.super_column %}
+      {% set has_detail_tab = columns | selectattr('tab_page', 'equalto', 'detail') | list | length > 0 %}
+      {% if has_detail_tab %}
+      <el-tabs v-model="activeTabName">
+        <el-tab-pane label="基本信息" name="basic">
+          <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+          {% for column in columns %}
+          {% set field = column.python_field %}
+          {% if (column.insert or column.edit) and not column.pk and column.column_name not in column_not_add_show + column_not_edit_show %}
+          {% if (column.usable_column or not column.super_column) and (not column.tab_page or column.tab_page == 'basic') %}
       {% set parentheseIndex = column.column_comment.find("（") %}
       {% set comment = column.column_comment[:parentheseIndex] if parentheseIndex != -1 else column.column_comment %}
       {% set dictType = column.dict_type %}
@@ -210,7 +225,22 @@
           ></el-option>
         </el-select>
       </el-form-item>
-      {% elif column.html_type == "select" and not dictType %}
+      {% elif column.html_type == "select" and column.link_table %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-select v-model="form.{{ field }}" placeholder="请选择{{ comment }}">
+          <el-option
+            v-for="item in {{ column.python_field }}Options"
+            :key="item.{{ column.link_value_field }}"
+            :label="item.{{ column.link_label_field }}"
+            {% if column.python_type == 'int' %}
+            :value="parseInt(item.{{ column.link_value_field }})"
+            {% else %}
+            :value="item.{{ column.link_value_field }}"
+            {% endif %}
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      {% elif column.html_type == "select" and not dictType and not column.link_table %}
       <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
         <el-select v-model="form.{{ field }}" placeholder="请选择{{ comment }}">
           <el-option label="请选择字典生成" value="" />
@@ -227,7 +257,18 @@
           </el-checkbox>
         </el-checkbox-group>
       </el-form-item>
-      {% elif column.html_type == "checkbox" and not dictType %}
+      {% elif column.html_type == "checkbox" and column.link_table %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-checkbox-group v-model="form.{{ field }}">
+          <el-checkbox
+            v-for="item in {{ column.python_field }}Options"
+            :key="item.{{ column.link_value_field }}"
+            :label="item.{{ column.link_value_field }}">
+            {% raw %}{{{% endraw %} item.{{ column.link_label_field }} {% raw %}}}{% endraw %}
+          </el-checkbox>
+        </el-checkbox-group>
+      </el-form-item>
+      {% elif column.html_type == "checkbox" and not dictType and not column.link_table %}
       <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
         <el-checkbox-group v-model="form.{{ field }}">
           <el-checkbox>请选择字典生成</el-checkbox>
@@ -248,7 +289,22 @@
           </el-radio>
         </el-radio-group>
       </el-form-item>
-      {% elif column.html_type == "radio" and not dictType %}
+      {% elif column.html_type == "radio" and column.link_table %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-radio-group v-model="form.{{ field }}">
+          <el-radio
+            v-for="item in {{ column.python_field }}Options"
+            :key="item.{{ column.link_value_field }}"
+            {% if column.python_type == 'int' %}
+            :label="parseInt(item.{{ column.link_value_field }})"
+            {% else %}
+            :label="item.{{ column.link_value_field }}"
+            {% endif %}>
+            {% raw %}{{{% endraw %} item.{{ column.link_label_field }} {% raw %}}}{% endraw %}
+          </el-radio>
+        </el-radio-group>
+      </el-form-item>
+      {% elif column.html_type == "radio" and not dictType and not column.link_table %}
       <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
         <el-radio-group v-model="form.{{ field }}">
           <el-radio label="请选择字典生成" value="" />
@@ -333,6 +389,184 @@
       </el-table>
       {% endif %}
       </el-form>
+        </el-tab-pane>
+        <el-tab-pane label="详细信息" name="detail">
+          <el-form ref="formDetail" :model="form" :rules="rules" label-width="80px">
+          {% for column in columns %}
+          {% set field = column.python_field %}
+          {% if (column.insert or column.edit) and not column.pk and column.column_name not in column_not_add_show + column_not_edit_show %}
+          {% if (column.usable_column or not column.super_column) and column.tab_page == 'detail' %}
+          {% set parentheseIndex = column.column_comment.find("（") %}
+          {% set comment = column.column_comment[:parentheseIndex] if parentheseIndex != -1 else column.column_comment %}
+          {% set dictType = column.dict_type %}
+          {% if column.html_type == "input" %}
+          <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+            <el-input v-model="form.{{ field }}" placeholder="请输入{{ comment }}" />
+          </el-form-item>
+          {% elif column.html_type == "textarea" %}
+          <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+            <el-input v-model="form.{{ field }}" type="textarea" placeholder="请输入内容" />
+          </el-form-item>
+          {% elif column.html_type == "datetime" %}
+          <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+            <el-date-picker clearable
+              v-model="form.{{ field }}"
+              type="date"
+              value-format="yyyy-MM-dd"
+              placeholder="请选择{{ comment }}">
+            </el-date-picker>
+          </el-form-item>
+          {% endif %}
+          {% endif %}
+          {% endif %}
+          {% endfor %}
+          </el-form>
+        </el-tab-pane>
+      </el-tabs>
+      {% else %}
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      {% for column in columns %}
+      {% set field = column.python_field %}
+      {% if (column.insert or column.edit) and not column.pk and column.column_name not in column_not_add_show + column_not_edit_show %}
+      {% if column.usable_column or not column.super_column %}
+      {% set parentheseIndex = column.column_comment.find("（") %}
+      {% set comment = column.column_comment[:parentheseIndex] if parentheseIndex != -1 else column.column_comment %}
+      {% set dictType = column.dict_type %}
+      {% if column.html_type == "input" %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-input v-model="form.{{ field }}" placeholder="请输入{{ comment }}" />
+      </el-form-item>
+      {% elif column.html_type == "imageUpload" %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <image-upload v-model="form.{{ field }}"/>
+      </el-form-item>
+      {% elif column.html_type == "fileUpload" %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <file-upload v-model="form.{{ field }}"/>
+      </el-form-item>
+      {% elif column.html_type == "editor" %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <editor v-model="form.{{ field }}" :min-height="192"/>
+      </el-form-item>
+      {% elif column.html_type == "select" and dictType %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-select v-model="form.{{ field }}" placeholder="请选择{{ comment }}">
+          <el-option
+            v-for="dict in dict.type.{{ dictType }}"
+            :key="dict.value"
+            :label="dict.label"
+            {% if column.python_type == 'int' %}
+            :value="parseInt(dict.value)"
+            {% else %}
+            :value="dict.value"
+            {% endif %}
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      {% elif column.html_type == "select" and column.link_table %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-select v-model="form.{{ field }}" placeholder="请选择{{ comment }}">
+          <el-option
+            v-for="item in {{ column.python_field }}Options"
+            :key="item.{{ column.link_value_field }}"
+            :label="item.{{ column.link_label_field }}"
+            {% if column.python_type == 'int' %}
+            :value="parseInt(item.{{ column.link_value_field }})"
+            {% else %}
+            :value="item.{{ column.link_value_field }}"
+            {% endif %}
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      {% elif column.html_type == "select" and not dictType and not column.link_table %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-select v-model="form.{{ field }}" placeholder="请选择{{ comment }}">
+          <el-option label="请选择字典生成" value="" />
+        </el-select>
+      </el-form-item>
+      {% elif column.html_type == "checkbox" and dictType %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-checkbox-group v-model="form.{{ field }}">
+          <el-checkbox
+            v-for="dict in dict.type.{{ dictType }}"
+            :key="dict.value"
+            :label="dict.value">
+            {{ dict.label }}
+          </el-checkbox>
+        </el-checkbox-group>
+      </el-form-item>
+      {% elif column.html_type == "checkbox" and column.link_table %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-checkbox-group v-model="form.{{ field }}">
+          <el-checkbox
+            v-for="item in {{ column.python_field }}Options"
+            :key="item.{{ column.link_value_field }}"
+            :label="item.{{ column.link_value_field }}">
+            {% raw %}{{{% endraw %} item.{{ column.link_label_field }} {% raw %}}}{% endraw %}
+          </el-checkbox>
+        </el-checkbox-group>
+      </el-form-item>
+      {% elif column.html_type == "checkbox" and not dictType and not column.link_table %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-checkbox-group v-model="form.{{ field }}">
+          <el-checkbox>请选择字典生成</el-checkbox>
+        </el-checkbox-group>
+      </el-form-item>
+      {% elif column.html_type == "radio" and dictType %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-radio-group v-model="form.{{ field }}">
+          <el-radio
+            v-for="dict in dict.type.{{ dictType }}"
+            :key="dict.value"
+            {% if column.python_type == 'int' %}
+            :label="parseInt(dict.value)"
+            {% else %}
+            :label="dict.value"
+            {% endif %}>
+            {% raw %}{{{% endraw %} dict.label {% raw %}}}{% endraw %}
+          </el-radio>
+        </el-radio-group>
+      </el-form-item>
+      {% elif column.html_type == "radio" and column.link_table %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-radio-group v-model="form.{{ field }}">
+          <el-radio
+            v-for="item in {{ column.python_field }}Options"
+            :key="item.{{ column.link_value_field }}"
+            {% if column.python_type == 'int' %}
+            :label="parseInt(item.{{ column.link_value_field }})"
+            {% else %}
+            :label="item.{{ column.link_value_field }}"
+            {% endif %}>
+            {% raw %}{{{% endraw %} item.{{ column.link_label_field }} {% raw %}}}{% endraw %}
+          </el-radio>
+        </el-radio-group>
+      </el-form-item>
+      {% elif column.html_type == "radio" and not dictType and not column.link_table %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-radio-group v-model="form.{{ field }}">
+          <el-radio label="请选择字典生成" value="" />
+        </el-radio-group>
+      </el-form-item>
+      {% elif column.html_type == "datetime" %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-date-picker clearable
+          v-model="form.{{ field }}"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择{{ comment }}">
+        </el-date-picker>
+      </el-form-item>
+      {% elif column.html_type == "textarea" %}
+      <el-form-item v-if="renderField({{ column.insert | lower }}, {{ column.edit | lower }})" label="{{ comment }}" prop="{{ field }}">
+        <el-input v-model="form.{{ field }}" type="textarea" placeholder="请输入内容" />
+      </el-form-item>
+      {% endif %}
+      {% endif %}
+      {% endif %}
+      {% endfor %}
+      </el-form>
+      {% endif %}
       <template #footer>
         <div class="dialog-footer">
           <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -345,6 +579,17 @@
 
 <script>
 import { list{{ BusinessName }}, get{{ BusinessName }}, del{{ BusinessName }}, add{{ BusinessName }}, update{{ BusinessName }} } from "@/api/{{ moduleName }}/{{ businessName }}";
+{% set link_tables = [] %}
+{% for column in columns %}
+{% if (column.html_type == "select" or column.html_type == "radio" or column.html_type == "checkbox") and column.link_table %}
+{% if column.link_table not in link_tables %}
+{% set _ = link_tables.append(column.link_table) %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% for link_table in link_tables %}
+import { list{{ link_table[0] | upper + link_table[1:] }} } from "@/api/{{ moduleName }}/{{ link_table }}";
+{% endfor %}
 
 export default {
   name: "{{ BusinessName }}",
@@ -378,6 +623,8 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 当前激活的标签页
+      activeTabName: 'basic',
       {% for column in columns %}
       {% if column.html_type == "datetime" and column.query_type == "BETWEEN" %}
       {% set AttrName = column.python_field[0] | upper + column.python_field[1:] %}
@@ -397,6 +644,12 @@ export default {
       },
       // 表单参数
       form: {},
+      {% for column in columns %}
+      {% if (column.html_type == "select" or column.html_type == "radio" or column.html_type == "checkbox") and column.link_table %}
+      // {{ column.column_comment }}关联表选项
+      {{ column.python_field }}Options: [],
+      {% endif %}
+      {% endfor %}
       // 表单校验
       rules: {
         {% for column in columns %}
@@ -413,8 +666,23 @@ export default {
   },
   created() {
     this.getList();
+    {% for column in columns %}
+    {% if (column.html_type == "select" or column.html_type == "radio" or column.html_type == "checkbox") and column.link_table %}
+    this.get{{ column.python_field[0] | upper + column.python_field[1:] }}Options();
+    {% endif %}
+    {% endfor %}
   },
   methods: {
+    {% for column in columns %}
+    {% if (column.html_type == "select" or column.html_type == "radio" or column.html_type == "checkbox") and column.link_table %}
+    /** 查询{{ column.column_comment }}关联表选项 */
+    get{{ column.python_field[0] | upper + column.python_field[1:] }}Options() {
+      list{{ column.link_table[0] | upper + column.link_table[1:] }}({ pageNum: 1, pageSize: 1000 }).then(response => {
+        this.{{ column.python_field }}Options = response.rows;
+      });
+    },
+    {% endif %}
+    {% endfor %}
     /** 查询{{ functionName }}列表 */
     getList() {
       this.loading = true;
@@ -484,12 +752,14 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
+      this.activeTabName = 'basic';
       this.open = true;
       this.title = "添加{{ functionName }}";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
+      this.activeTabName = 'basic';
       const {{ pkColumn.python_field }} = row.{{ pkColumn.python_field }} || this.ids;
       get{{ BusinessName }}({{ pkColumn.python_field }}).then(response => {
         this.form = response.data;

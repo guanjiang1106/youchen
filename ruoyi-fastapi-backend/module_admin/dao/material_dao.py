@@ -103,7 +103,7 @@ class MaterialDao:
         :param material: 物料对象
         :return:
         """
-        db_material = Material(**material.model_dump(exclude={'unit', 'category_id', 'safety_stock', }))
+        db_material = Material(**material.model_dump(exclude={}))
         db.add(db_material)
         await db.flush()
 

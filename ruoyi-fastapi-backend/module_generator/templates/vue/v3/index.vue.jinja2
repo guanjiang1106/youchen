@@ -28,7 +28,18 @@
           />
         </el-select>
       </el-form-item>
-      {% elif (column.html_type == "select" or column.html_type == "radio") and not dictType %}
+      {% elif (column.html_type == "select" or column.html_type == "radio") and column.link_table %}
+      <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
+        <el-select v-model="queryParams.{{ column.python_field }}" placeholder="请选择{{ comment }}" clearable style="width: 240px">
+          <el-option
+            v-for="item in {{ column.python_field }}Options.value"
+            :key="item.{{ column.link_value_field }}"
+            :label="item.{{ column.link_label_field }}"
+            :value="item.{{ column.link_value_field }}"
+          />
+        </el-select>
+      </el-form-item>
+      {% elif (column.html_type == "select" or column.html_type == "radio") and not dictType and not column.link_table %}
       <el-form-item label="{{ comment }}" prop="{{ column.python_field }}">
         <el-select v-model="queryParams.{{ column.python_field }}" placeholder="请选择{{ comment }}" clearable style="width: 240px">
           <el-option label="请选择字典生成" value="" />

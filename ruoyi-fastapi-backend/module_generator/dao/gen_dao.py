@@ -256,10 +256,11 @@ class GenTableDao:
         编辑业务表数据库操作
 
         :param db: orm对象
-        :param gen_table: 需要更新的业务表字典
+        :param gen_table: 需要更新的业务表字典（驼峰格式）
         :return:
         """
-        await db.execute(update(GenTable), [GenTableBaseModel(**gen_table).model_dump()])
+        # 将驼峰格式转换为下划线格式以匹配数据库字段
+        await db.execute(update(GenTable), [GenTableBaseModel(**gen_table).model_dump(by_alias=False)])
 
     @classmethod
     async def delete_gen_table_dao(cls, db: AsyncSession, gen_table: GenTableModel) -> None:

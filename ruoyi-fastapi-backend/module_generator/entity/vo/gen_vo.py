@@ -31,6 +31,7 @@ class GenTableBaseModel(BaseModel):
     function_author: str | None = Field(default=None, description='生成功能作者')
     gen_type: Literal['0', '1'] | None = Field(default=None, description='生成代码方式（0zip压缩包 1自定义路径）')
     gen_path: str | None = Field(default=None, description='生成路径（不填默认项目路径）')
+    form_layout: str | None = Field(default=None, description='表单布局配置（JSON格式）')
     options: str | None = Field(default=None, description='其它生成选项')
     create_by: str | None = Field(default=None, description='创建者')
     create_time: datetime | None = Field(default=None, description='创建时间')
@@ -215,6 +216,13 @@ class GenTableColumnBaseModel(BaseModel):
         default=None, description='显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）'
     )
     dict_type: str | None = Field(default=None, description='字典类型')
+    link_table: str | None = Field(default=None, description='关联表名称')
+    link_label_field: str | None = Field(default=None, description='关联表标签字段')
+    link_value_field: str | None = Field(default=None, description='关联表值字段')
+    tab_page: str | None = Field(default='basic', description='显示页签（basic基本信息/detail详细信息）')
+    default_value: str | None = Field(default=None, description='默认值')
+    example_value: str | None = Field(default=None, description='示例值')
+    list_width: int | None = Field(default=None, description='列表显示宽度（像素）')
     sort: int | None = Field(default=None, description='排序')
     create_by: str | None = Field(default=None, description='创建者')
     create_time: datetime | None = Field(default=None, description='创建时间')
@@ -292,3 +300,36 @@ class DeleteGenTableColumnModel(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel)
 
     column_ids: str = Field(description='需要删除的代码生成业务表字段ID')
+
+
+class RefactorFrontendModel(BaseModel):
+    """
+    前端界面重构请求模型
+    """
+
+    model_config = ConfigDict(alias_generator=to_camel)
+
+    table_ids: list[int] = Field(description='表ID列表')
+    model_id: int = Field(description='AI模型ID')
+    keep_original: bool = Field(default=True, description='是否保留原有功能')
+    add_new_button: bool = Field(default=False, description='是否新增按钮')
+    new_button_name: str | None = Field(default=None, description='新按钮名称')
+    requirement: str = Field(description='重构需求描述（包含新按钮功能）')
+    file_type: str | None = Field(default=None, description='指定重新生成的文件类型（index/controller/service/api）')
+    error_message: str | None = Field(default=None, description='错误信息或修改需求')
+    current_code: str | None = Field(default=None, description='当前的代码')
+
+
+class ApplyRefactorModel(BaseModel):
+    """
+    应用重构结果模型
+    """
+
+    model_config = ConfigDict(alias_generator=to_camel)
+
+    table_id: int = Field(description='表ID')
+    index_code: str = Field(description='index.vue代码')
+    api_code: str | None = Field(default=None, description='api.js代码')
+    controller_code: str | None = Field(default=None, description='controller.py代码')
+    service_code: str | None = Field(default=None, description='service.py代码')
+    vo_code: str | None = Field(default=None, description='vo.py代码')  # 新增 VO 代码字段

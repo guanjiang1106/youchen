@@ -154,10 +154,24 @@
           <el-button
             type="text"
             size="small"
+            icon="el-icon-s-grid"
+            @click="handleCreateMenu(scope.row)"
+            v-hasPermi="['tool:gen:edit']"
+          >生成菜单</el-button>
+          <el-button
+            type="text"
+            size="small"
             icon="el-icon-download"
             @click="handleGenTable(scope.row)"
             v-hasPermi="['tool:gen:code']"
           >生成代码</el-button>
+          <el-button
+            type="text"
+            size="small"
+            icon="el-icon-magic-stick"
+            @click="handleRefactor(scope.row)"
+            v-hasPermi="['tool:gen:edit']"
+          >界面重构</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -184,13 +198,15 @@
     </el-dialog>
     <import-table ref="import" @ok="handleQuery" />
     <create-table ref="create" @ok="handleQuery" />
+    <refactor-dialog ref="refactor" @ok="handleQuery" />
   </div>
 </template>
 
 <script>
-import { listTable, previewTable, delTable, genCode, synchDb } from "@/api/tool/gen";
+import { listTable, previewTable, delTable, genCode, synchDb, createMenu } from "@/api/tool/gen";
 import importTable from "./importTable";
 import createTable from "./createTable";
+import refactorDialog from "./refactorDialog";
 import hljs from "highlight.js/lib/highlight";
 import "highlight.js/styles/github-gist.css";
 hljs.registerLanguage("py", require("highlight.js/lib/languages/python"));
@@ -201,7 +217,7 @@ hljs.registerLanguage("sql", require("highlight.js/lib/languages/sql"));
 
 export default {
   name: "Gen",
-  components: { importTable, createTable },
+  components: { importTable, createTable, refactorDialog },
   data() {
     return {
       // 遮罩层
@@ -294,6 +310,21 @@ export default {
       }).catch(() => {});
     },
 
+    /** 生成菜单操作 */
+    handleCreateMenu(row) {
+      const tableId = row.tableId;
+      const tableName = row.tableName;
+      this.$modal.confirm('确认要为"' + tableName + '"生成菜单吗？将根据生成信息配置自动创建菜单和按钮权限。', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(function() {
+        return createMenu(tableId);
+      }).then((response) => {
+        this.$modal.msgSuccess(response.msg || "菜单生成成功");
+      }).catch(() => {});
+    },
+
     /** 打开导入表弹窗 */
     openImportTable() {
       this.$refs.import.show();
@@ -350,6 +381,10 @@ export default {
         this.getList();
         this.$modal.msgSuccess("删除成功");
       }).catch(() => {});
+    },
+    /** 界面重构操作 */
+    handleRefactor(row) {
+      this.$refs.refactor.show(row);
     }
   }
 };

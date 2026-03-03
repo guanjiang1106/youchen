@@ -21,7 +21,7 @@ class ProcessModel(BaseModel):
     sequence_order: int | None = Field(default=None, description='工序顺序')
     standard_time: Decimal | None = Field(default=None, description='标准工时（分钟）')
     required_tooling: str | None = Field(default=None, description='所需工装夹具')
-    status: int | None = Field(default=None, description='状态：1-启用，0-禁用')
+    status: int | None = Field(default=None, description='状态')
     create_time: datetime | None = Field(default=None, description='创建时间')
     update_time: datetime | None = Field(default=None, description='更新时间')
 

@@ -151,7 +151,7 @@ async def export_module_admin_material_list(
 ) -> Response:
     # 获取全量数据
     material_query_result = await MaterialService.get_material_list_services(query_db, material_page_query, is_page=False)
-    material_export_result = await MaterialService.export_material_list_services(material_query_result)
+    material_export_result = await MaterialService.export_material_list_services(request, material_query_result)
     logger.info('导出成功')
 
     return ResponseUtil.streaming(data=bytes2file_response(material_export_result))

@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime, date
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -16,13 +16,13 @@ class TeacherModel(BaseModel):
     id: int | None = Field(default=None, description='主键 ID')
     teacher_no: str | None = Field(default=None, description='教师编号')
     name: str | None = Field(default=None, description='姓名')
-    gender: int | None = Field(default=None, description='性别：0-未知，1-男，2-女')
+    gender: int | None = Field(default=None, description='性别')
     birth_date: date | None = Field(default=None, description='出生日期')
     phone: str | None = Field(default=None, description='联系电话')
     email: str | None = Field(default=None, description='电子邮箱')
     department: str | None = Field(default=None, description='所属部门')
     title: str | None = Field(default=None, description='职称')
-    status: int | None = Field(default=None, description='状态：0-禁用，1-启用')
+    status: int | None = Field(default=None, description='状态')
     create_time: datetime | None = Field(default=None, description='创建时间')
     update_time: datetime | None = Field(default=None, description='更新时间')
 
@@ -34,11 +34,11 @@ class TeacherModel(BaseModel):
     def get_name(self) -> str | None:
         return self.name
 
-    @NotBlank(field_name='gender', message='性别：0-未知，1-男，2-女不能为空')
+    @NotBlank(field_name='gender', message='性别不能为空')
     def get_gender(self) -> int | None:
         return self.gender
 
-    @NotBlank(field_name='status', message='状态：0-禁用，1-启用不能为空')
+    @NotBlank(field_name='status', message='状态不能为空')
     def get_status(self) -> int | None:
         return self.status
 

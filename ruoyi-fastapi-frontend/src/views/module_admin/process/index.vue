@@ -68,7 +68,7 @@
       <el-table-column label="工序顺序" align="center" prop="sequenceOrder" />
       <el-table-column label="标准工时" align="center" prop="standardTime" />
       <el-table-column label="所需工装夹具" align="center" prop="requiredTooling" />
-      <el-table-column label="状态：1-启用，0-禁用" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -99,30 +99,12 @@
 
     <!-- 添加或修改工艺对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="120px">
-      <el-form-item v-if="renderField(true, true)" label="工艺编码" prop="processCode">
-        <el-input v-model="form.processCode" placeholder="请输入工艺编码" />
-      </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="工艺名称" prop="processName">
-        <el-input v-model="form.processName" placeholder="请输入工艺名称" />
-      </el-form-item>
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
       <el-form-item v-if="renderField(true, true)" label="工艺描述" prop="description">
-        <el-input v-model="form.description" type="textarea" placeholder="请输入工艺描述" />
-      </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="工序顺序" prop="sequenceOrder">
-        <el-input-number v-model="form.sequenceOrder" :min="1" placeholder="请输入工序顺序" />
-      </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="标准工时(分钟)" prop="standardTime">
-        <el-input-number v-model="form.standardTime" :min="0" :precision="2" placeholder="请输入标准工时" />
+        <el-input v-model="form.description" type="textarea" placeholder="请输入内容" />
       </el-form-item>
       <el-form-item v-if="renderField(true, true)" label="所需工装夹具" prop="requiredTooling">
         <el-input v-model="form.requiredTooling" placeholder="请输入所需工装夹具" />
-      </el-form-item>
-      <el-form-item v-if="renderField(true, true)" label="状态" prop="status">
-        <el-radio-group v-model="form.status">
-          <el-radio :label="1">启用</el-radio>
-          <el-radio :label="0">禁用</el-radio>
-        </el-radio-group>
       </el-form-item>
       </el-form>
       <template #footer>
@@ -140,6 +122,7 @@ import { listProcess, getProcess, delProcess, addProcess, updateProcess } from "
 
 export default {
   name: "Process",
+  dicts: ['sys_normal_disable'],
   data() {
     return {
       // 遮罩层
@@ -160,6 +143,8 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 当前激活的标签页
+      activeTabName: 'basic',
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -229,12 +214,14 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
+      this.activeTabName = 'basic';
       this.open = true;
       this.title = "添加工艺";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
+      this.activeTabName = 'basic';
       const id = row.id || this.ids;
       getProcess(id).then(response => {
         this.form = response.data;

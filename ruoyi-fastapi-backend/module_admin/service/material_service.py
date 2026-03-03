@@ -1,5 +1,6 @@
 from typing import Any
 
+from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from common.constant import CommonConstant
@@ -7,6 +8,7 @@ from common.vo import CrudResponseModel, PageModel
 from exceptions.exception import ServiceException
 from module_admin.dao.material_dao import MaterialDao
 from module_admin.entity.vo.material_vo import DeleteMaterialModel, MaterialModel, MaterialPageQueryModel
+from module_admin.service.dict_service import DictDataService
 from utils.common_util import CamelCaseUtil
 from utils.excel_util import ExcelUtil
 
@@ -109,7 +111,7 @@ class MaterialService:
         return result
 
     @staticmethod
-    async def export_material_list_services(material_list: list) -> bytes:
+    async def export_material_list_services(request: Request, material_list: list) -> bytes:
         """
         导出物料信息service
 
@@ -127,11 +129,19 @@ class MaterialService:
             'stockQuantity': '库存数量',
             'safetyStock': '安全库存',
             'price': '参考单价',
-            'status': '状态：1-启用，0-禁用',
+            'status': '状态',
             'remark': '备注',
             'createTime': '创建时间',
             'updateTime': '更新时间',
         }
+        sys_normal_disable_list = await DictDataService.query_dict_data_list_from_cache_services(
+            request.app.state.redis, dict_type='sys_normal_disable'
+        )
+        sys_normal_disable_option = [{'label': item.get('dictLabel'), 'value': item.get('dictValue')} for item in sys_normal_disable_list]
+        sys_normal_disable_option_dict = {item.get('value'): item for item in sys_normal_disable_option}
+        for item in material_list:
+            if str(item.get('status')) in sys_normal_disable_option_dict:
+                item['status'] = sys_normal_disable_option_dict.get(str(item.get('status'))).get('label')
         binary_data = ExcelUtil.export_list2excel(material_list, mapping_dict)
 
         return binary_data

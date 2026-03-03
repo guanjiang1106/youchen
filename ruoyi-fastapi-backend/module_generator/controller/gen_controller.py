@@ -16,12 +16,14 @@ from common.vo import DataResponseModel, PageResponseModel, ResponseBaseModel
 from config.env import GenConfig
 from module_admin.entity.vo.user_vo import CurrentUserModel
 from module_generator.entity.vo.gen_vo import (
+    ApplyRefactorModel,
     DeleteGenTableModel,
     EditGenTableModel,
     GenTableDbRowModel,
     GenTableDetailModel,
     GenTablePageQueryModel,
     GenTableRowModel,
+    RefactorFrontendModel,
 )
 from module_generator.service.gen_service import GenTableColumnService, GenTableService
 from utils.common_util import bytes2file_response
@@ -281,3 +283,80 @@ async def sync_db(
     logger.info(sync_db_result.message)
 
     return ResponseUtil.success(data=sync_db_result.message)
+
+
+@gen_controller.post(
+    '/createMenu/{table_id}',
+    summary='生成菜单接口',
+    description='根据代码生成表配置自动创建菜单',
+    response_model=ResponseBaseModel,
+    dependencies=[UserInterfaceAuthDependency('tool:gen:edit')],
+)
+@Log(title='生成菜单', business_type=BusinessType.INSERT)
+async def create_menu(
+    request: Request,
+    table_id: Annotated[int, Path(description='表编号')],
+    query_db: Annotated[AsyncSession, DBSessionDependency()],
+    current_user: Annotated[CurrentUserModel, CurrentUserDependency()],
+) -> Response:
+    create_menu_result = await GenTableService.create_menu_services(query_db, table_id, current_user)
+    logger.info(create_menu_result.message)
+
+    return ResponseUtil.success(msg=create_menu_result.message)
+
+
+@gen_controller.post(
+    '/refactorFrontend',
+    summary='AI重构前端界面接口',
+    description='通过AI模型重构前端Vue界面',
+    response_model=DataResponseModel[dict[str, str]],
+    dependencies=[UserInterfaceAuthDependency('tool:gen:edit')],
+)
+@Log(title='界面重构', business_type=BusinessType.OTHER)
+async def refactor_frontend(
+    request: Request,
+    refactor_req: RefactorFrontendModel,
+    query_db: Annotated[AsyncSession, DBSessionDependency()],
+) -> Response:
+    refactor_result = await GenTableService.refactor_frontend_services(
+        query_db, 
+        refactor_req.table_ids, 
+        refactor_req.model_id, 
+        refactor_req.requirement,
+        refactor_req.keep_original,
+        refactor_req.add_new_button,
+        refactor_req.new_button_name,
+        refactor_req.file_type,
+        refactor_req.error_message,
+        refactor_req.current_code
+    )
+    logger.info('界面重构成功')
+
+    return ResponseUtil.success(data=refactor_result)
+
+
+@gen_controller.post(
+    '/applyRefactor',
+    summary='应用重构结果接口',
+    description='将重构后的代码应用到本地文件',
+    response_model=ResponseBaseModel,
+    dependencies=[UserInterfaceAuthDependency('tool:gen:edit')],
+)
+@Log(title='应用重构', business_type=BusinessType.UPDATE)
+async def apply_refactor(
+    request: Request,
+    apply_req: ApplyRefactorModel,
+    query_db: Annotated[AsyncSession, DBSessionDependency()],
+) -> Response:
+    apply_result = await GenTableService.apply_refactor_services(
+        query_db, 
+        apply_req.table_id, 
+        apply_req.index_code, 
+        apply_req.api_code,
+        apply_req.controller_code,
+        apply_req.service_code,
+        apply_req.vo_code  # 新增 VO 代码参数
+    )
+    logger.info(apply_result.message)
+
+    return ResponseUtil.success(msg=apply_result.message)

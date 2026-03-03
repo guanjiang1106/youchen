@@ -42,3 +42,26 @@ export function delTeacher(id) {
     method: 'delete'
   })
 }
+
+// 导出老师维护
+export function exportTeacher(query) {
+  return request({
+    url: '/module_admin/teacher/export',
+    method: 'post',
+    params: query
+  })
+}
+
+// 随机生成老师维护数据
+export function generateRandomTeacher(count) {
+  const data = new FormData()
+  data.append('count', count)
+  return request({
+    url: '/module_admin/teacher/generate',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data: data
+  })
+}

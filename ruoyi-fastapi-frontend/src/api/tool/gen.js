@@ -93,3 +93,31 @@ export function synchDb(tableName) {
     method: 'get'
   })
 }
+
+// 生成菜单
+export function createMenu(tableId) {
+  return request({
+    url: '/tool/gen/createMenu/' + tableId,
+    method: 'post',
+    timeout: 30000 // 设置30秒超时
+  })
+}
+
+// AI重构前端界面
+export function refactorFrontend(data) {
+  return request({
+    url: '/tool/gen/refactorFrontend',
+    method: 'post',
+    data: data,
+    timeout: 180000 // 设置3分钟超时，AI生成需要较长时间
+  })
+}
+
+// 应用重构结果
+export function applyRefactor(data) {
+  return request({
+    url: '/tool/gen/applyRefactor',
+    method: 'post',
+    data: data
+  })
+}
