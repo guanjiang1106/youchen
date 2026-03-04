@@ -9,7 +9,7 @@ export default {
   name: 'RuoYiGit',
   data() {
     return {
-      url: 'https://github.com/guanjiang1106/youcheng'
+      url: 'https://gitee.com/y_project/RuoYi-FastAPI'
     }
   },
   methods: {

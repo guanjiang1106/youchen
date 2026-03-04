@@ -1,13 +1,13 @@
 <h1 align="center">
     <img alt="logo" src="https://oscimg.oschina.net/oscnet/up-d3d0a9303e11d522a06cd263f3079027715.png">
 </h1>
-<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">RuoYi-Vue-FastAPI</h1>
-<h4 align="center">基于RuoYi-Vue+FastAPI前后端分离的快速开发框架</h4>
+<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">宥辰开发平台 (YouChen-FastAPI)</h1>
+<h4 align="center">基于FastAPI+Vue前后端分离的快速开发框架</h4>
 
 
-## 平台简介1
+## 平台简介
 
-RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个人及企业免费使用。
+宥辰开发平台(YouChen-FastAPI)是一套全部开源的快速开发平台，毫无保留给个人及企业免费使用。
 
 * 前端采用Vue、Element UI，基于<u>[RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue)</u>前端项目修改。
 * 移动端采用uni-app、Vue2，内置tailwindcss，基于<u>[RuoYi-App](https://github.com/yangzongzhuan/RuoYi-App)</u>项目修改。
@@ -36,6 +36,7 @@ RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个
 16. 系统接口：根据业务代码自动生成相关的api接口文档。
 17. 代码生成：配置数据库表信息一键生成前后端代码（python、sql、vue、js），支持下载。
 18. AI管理：提供AI模型管理和AI对话功能。
+19. AI技能系统：支持加载和使用各种技能，增强AI能力（参考OpenClaw实现）。
 
 ## ✨ 特色功能
 
@@ -48,6 +49,18 @@ RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个
 - **智能修改功能**：AI 理解业务逻辑，精准修改代码
 - **保护框架完整性**：AI 严格遵循开发规范，不会修改核心文件
 - **极速开发**：从需求到可用功能，只需几分钟
+
+### 🎯 AI 技能系统
+
+本项目集成了完整的 AI 技能系统，参考 OpenClaw 的 Skills 实现：
+
+- **自动发现技能**：从配置的目录自动加载技能
+- **智能过滤**：根据依赖、操作系统、用户配置过滤技能
+- **技能注入**：技能描述自动注入到 AI 提示词
+- **内置技能**：天气查询、文本摘要等实用技能
+- **易于扩展**：简单的 Markdown 格式，轻松添加自定义技能
+
+详细文档：[AI 技能系统快速开始](youchen-fastapi-backend/docs/SKILLS_QUICKSTART.md)
 
 **使用示例：**
 
@@ -279,7 +292,7 @@ cd youchen
 
 ```bash
 # 进入前端目录
-cd ruoyi-fastapi-frontend
+cd youchen-fastapi-frontend
 
 # 安装依赖
 npm install
@@ -295,7 +308,7 @@ npm run dev
 
 ```bash
 # 进入移动端目录
-cd ruoyi-fastapi-app
+cd youchen-fastapi-app
 
 # 安装依赖
 npm install -g yarn
@@ -314,7 +327,7 @@ yarn dev:mp-weixin
 
 ```bash
 # 进入后端目录
-cd ruoyi-fastapi-backend
+cd youchen-fastapi-backend
 
 # 根据使用的数据库类型安装依赖
 # 如果使用 MySQL 数据库（推荐）
@@ -330,10 +343,10 @@ pip3 install -r requirements-pg.txt
 # - 使用 PostgreSQL：DB_TYPE=postgresql
 
 # 运行 sql 文件
-# 1. 新建数据库 ruoyi-fastapi（默认，可修改）
+# 1. 新建数据库 youchen-fastapi（默认，可修改）
 # 2. 根据数据库类型运行对应的 SQL 文件：
-#    - MySQL：运行 sql/ruoyi-fastapi.sql
-#    - PostgreSQL：运行 sql/ruoyi-fastapi-pg.sql
+#    - MySQL：运行 sql/youchen-fastapi.sql
+#    - PostgreSQL：运行 sql/youchen-fastapi-pg.sql
 
 # 运行后端
 python3 app.py --env=dev

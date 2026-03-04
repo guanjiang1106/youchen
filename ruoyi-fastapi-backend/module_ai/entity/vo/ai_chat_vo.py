@@ -29,7 +29,7 @@ class AiChatConfigModel(BaseModel):
     chat_config_id: int | None = Field(default=None, description='配置主键')
     user_id: int | None = Field(default=None, description='用户ID')
     temperature: float | None = Field(default=None, description='默认温度')
-    add_history_to_context: Literal['0', '1'] | None = Field(default=None, description='是否添加历史记录')
+    add_history_to_context: Literal['0', '1'] | None = Field(default='0', description='是否添加历史记录')
     num_history_runs: int | None = Field(default=3, description='历史记录条数')
     system_prompt: str | None = Field(default=None, description='系统提示词')
     metrics_default_visible: Literal['0', '1'] | None = Field(default=None, description='默认显示指标')

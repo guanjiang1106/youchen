@@ -19,6 +19,7 @@
     </div>
     <div class="ai-message-content">
       <MarkdownRender :content="content" :is-dark="isDark" />
+      <span v-if="isTyping" class="typing-cursor">▋</span>
     </div>
     <div
       v-if="loading && !content && !reasoningContent"
@@ -46,6 +47,10 @@ export default defineComponent({
       default: "",
     },
     loading: {
+      type: Boolean,
+      default: false,
+    },
+    isTyping: {
       type: Boolean,
       default: false,
     },
@@ -84,6 +89,15 @@ export default defineComponent({
     color: #606266;
     overflow-wrap: break-word;
     word-break: break-word;
+    position: relative;
+    
+    .typing-cursor {
+      display: inline-block;
+      margin-left: 2px;
+      color: #409eff;
+      animation: blink 1s step-end infinite;
+      font-weight: bold;
+    }
   }
 }
 
@@ -129,14 +143,11 @@ export default defineComponent({
 }
 
 @keyframes blink {
-  0% {
+  0%, 50% {
     opacity: 1;
   }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
+  51%, 100% {
+    opacity: 0;
   }
 }
 

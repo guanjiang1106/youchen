@@ -58,7 +58,13 @@
             </div>
           </div>
           <div class="card-body">
-            <div id="trendChart" class="chart-container"></div>
+            <div class="chart-container">
+              <div class="chart-placeholder">
+                <i class="el-icon-data-line" style="font-size: 48px; color: #dcdfe6; margin-bottom: 16px;"></i>
+                <p style="color: #909399; font-size: 14px;">数据趋势图表</p>
+                <p style="color: #c0c4cc; font-size: 12px;">可集成 ECharts 展示数据趋势</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -67,7 +73,13 @@
             <h3 class="card-title">分类统计</h3>
           </div>
           <div class="card-body">
-            <div id="categoryChart" class="chart-container"></div>
+            <div class="chart-container">
+              <div class="chart-placeholder">
+                <i class="el-icon-pie-chart" style="font-size: 48px; color: #dcdfe6; margin-bottom: 16px;"></i>
+                <p style="color: #909399; font-size: 14px;">分类统计图表</p>
+                <p style="color: #c0c4cc; font-size: 12px;">可集成 ECharts 展示分类数据</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -77,7 +89,7 @@
         <div class="modern-card">
           <div class="card-header">
             <h3 class="card-title">最近活动</h3>
-            <a href="#" class="view-all">查看全部 →</a>
+            <a href="javascript:void(0)" class="view-all" @click="viewAllActivities">查看全部 →</a>
           </div>
           <div class="card-body">
             <div class="activity-list">
@@ -118,84 +130,56 @@
 </template>
 
 <script>
+import { getDashboardStats, getRecentActivities } from '@/api/dashboard'
+
 export default {
   name: 'ModernDashboard',
   data() {
     return {
-      userName: '管理员',
+      loading: false,
       stats: [
         {
           icon: 'el-icon-user',
-          value: '1,234',
+          value: '0',
           label: '总用户数',
-          trend: 12.5,
+          trend: 0,
           gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
         },
         {
           icon: 'el-icon-document',
-          value: '5,678',
-          label: '文档数量',
-          trend: 8.3,
+          value: '0',
+          label: '今日操作',
+          trend: 0,
           gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
         },
         {
           icon: 'el-icon-s-data',
-          value: '89.5%',
-          label: '系统性能',
-          trend: -2.1,
+          value: '0',
+          label: '今日登录',
+          trend: 0,
           gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
         },
         {
           icon: 'el-icon-star-on',
-          value: '4.8',
-          label: '用户评分',
-          trend: 5.2,
+          value: '0%',
+          label: '登录成功率',
+          trend: 0,
           gradient: 'linear-gradient(135deg, #ffd89b 0%, #ff6b6b 100%)'
         }
       ],
-      activities: [
-        {
-          icon: 'el-icon-user-solid',
-          title: '新用户注册',
-          time: '5分钟前',
-          status: 'success',
-          statusText: '成功',
-          color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-        },
-        {
-          icon: 'el-icon-document',
-          title: '文档已更新',
-          time: '1小时前',
-          status: 'info',
-          statusText: '完成',
-          color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-        },
-        {
-          icon: 'el-icon-warning',
-          title: '系统告警',
-          time: '2小时前',
-          status: 'warning',
-          statusText: '待处理',
-          color: 'linear-gradient(135deg, #ffd89b 0%, #ff6b6b 100%)'
-        },
-        {
-          icon: 'el-icon-check',
-          title: '任务完成',
-          time: '3小时前',
-          status: 'success',
-          statusText: '已完成',
-          color: 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)'
-        }
-      ],
+      activities: [],
       todos: [
-        { text: '完成项目文档', completed: false, priority: 'high' },
-        { text: '代码审查', completed: true, priority: 'medium' },
+        { text: '查看系统日志', completed: false, priority: 'high' },
+        { text: '检查用户反馈', completed: false, priority: 'medium' },
         { text: '更新系统配置', completed: false, priority: 'high' },
-        { text: '团队会议', completed: false, priority: 'low' }
+        { text: '数据备份', completed: false, priority: 'low' }
       ]
     };
   },
   computed: {
+    userName() {
+      return this.$store.state.user.name || '管理员';
+    },
     greeting() {
       const hour = new Date().getHours();
       if (hour < 12) return '早上好';
@@ -209,18 +193,89 @@ export default {
     }
   },
   mounted() {
-    this.initCharts();
+    this.loadDashboardData();
   },
   methods: {
+    async loadDashboardData() {
+      this.loading = true;
+      try {
+        // 加载统计数据
+        await this.loadStats();
+        // 加载最近活动
+        await this.loadActivities();
+      } catch (error) {
+        console.error('加载首页数据失败:', error);
+        this.$message.error('加载数据失败');
+      } finally {
+        this.loading = false;
+      }
+    },
+    async loadStats() {
+      try {
+        const response = await getDashboardStats();
+        if (response.code === 200 && response.data) {
+          const data = response.data;
+          
+          // 更新统计卡片数据
+          this.stats[0].value = this.formatNumber(data.totalUsers);
+          this.stats[0].trend = data.userGrowth || 0;
+          
+          this.stats[1].value = this.formatNumber(data.todayLogs);
+          this.stats[1].trend = data.logGrowth || 0;
+          
+          this.stats[2].value = this.formatNumber(data.todayLogins);
+          this.stats[2].trend = data.loginGrowth || 0;
+          
+          this.stats[3].value = `${data.successRate}%`;
+          this.stats[3].trend = data.successRateChange || 0;
+        }
+      } catch (error) {
+        console.error('加载统计数据失败:', error);
+      }
+    },
+    async loadActivities() {
+      try {
+        const response = await getRecentActivities();
+        if (response.code === 200 && response.data) {
+          this.activities = response.data;
+        }
+      } catch (error) {
+        console.error('加载活动数据失败:', error);
+      }
+    },
+    formatNumber(num) {
+      if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'k';
+      }
+      return num.toString();
+    },
     handleQuickAction(action) {
-      this.$message.success(`执行操作: ${action}`);
+      const actionMap = {
+        'create': () => {
+          this.$router.push('/system/user');
+        },
+        'search': () => {
+          this.$message.info('搜索功能开发中');
+        },
+        'settings': () => {
+          this.$router.push('/system/config');
+        }
+      };
+      
+      if (actionMap[action]) {
+        actionMap[action]();
+      }
     },
     refreshChart() {
-      this.$message.info('刷新图表数据');
-      this.initCharts();
+      this.loadDashboardData();
+      this.$message.success('数据已刷新');
     },
     handleTodoChange(todo) {
       this.$message.success(todo.completed ? '任务已完成' : '任务未完成');
+    },
+    viewAllActivities() {
+      // 跳转到操作日志页面
+      this.$router.push('/monitor/operlog');
     },
     initCharts() {
       // 这里可以集成 ECharts 或其他图表库
@@ -477,8 +532,14 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #95a5a6;
-  font-size: 14px;
+  
+  .chart-placeholder {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 // 活动列表

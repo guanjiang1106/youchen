@@ -1,7 +1,7 @@
 {
-  "name": "vfadmin",
+  "name": "ruoyi-admin",
   "version": "1.9.0",
-  "description": "vfadmin管理系统",
+  "description": "若依管理系统",
   "author": "insistence",
   "license": "MIT",
   "scripts": {
@@ -22,7 +22,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/insistence2022/RuoYi-Vue-FastAPI.git"
+    "url": "https://gitee.com/y_project/RuoYi-FastAPI.git"
   },
   "dependencies": {
     "@antv/g2plot": "^2.4.31",

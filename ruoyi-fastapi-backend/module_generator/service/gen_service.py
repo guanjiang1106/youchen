@@ -156,18 +156,153 @@ class GenTableService:
         if page_object.table_ids:
             table_id_list = page_object.table_ids.split(',')
             try:
+                deleted_files = []
+                deleted_tables = []
+                
                 for table_id in table_id_list:
+                    # 获取表信息，用于删除生成的文件和数据库表
+                    gen_table = await GenTableDao.get_gen_table_by_id(query_db, int(table_id))
+                    if gen_table:
+                        # 删除数据库表
+                        try:
+                            drop_sql = f"DROP TABLE IF EXISTS `{gen_table.table_name}`"
+                            await query_db.execute(drop_sql)
+                            deleted_tables.append(gen_table.table_name)
+                            logger.info(f'已删除数据库表: {gen_table.table_name}')
+                        except Exception as e:
+                            logger.warning(f'删除数据库表失败: {gen_table.table_name}, 错误: {str(e)}')
+                        
+                        # 删除生成的代码文件
+                        deleted_count = await cls._delete_generated_files(gen_table)
+                        if deleted_count > 0:
+                            deleted_files.append(f"{gen_table.table_name}({deleted_count}个文件)")
+                    
+                    # 删除数据库记录
                     await GenTableDao.delete_gen_table_dao(query_db, GenTableModel(tableId=table_id))
                     await GenTableColumnDao.delete_gen_table_column_by_table_id_dao(
                         query_db, GenTableColumnModel(tableId=table_id)
                     )
+                
                 await query_db.commit()
-                return CrudResponseModel(is_success=True, message='删除成功')
+                
+                # 构建返回消息
+                message = '删除成功'
+                if deleted_tables:
+                    message += f'，已删除数据库表：{", ".join(deleted_tables)}'
+                if deleted_files:
+                    message += f'，已删除生成的文件：{", ".join(deleted_files)}'
+                
+                return CrudResponseModel(is_success=True, message=message)
             except Exception as e:
                 await query_db.rollback()
                 raise e
         else:
             raise ServiceException(message='传入业务表id为空')
+
+    @classmethod
+    async def _delete_generated_files(cls, gen_table) -> int:
+        """
+        删除代码生成器生成的文件
+
+        :param gen_table: 代码生成表对象
+        :return: 删除的文件数量
+        """
+        deleted_count = 0
+        
+        try:
+            # 获取表的基本信息
+            table_name = gen_table.table_name
+            business_name = gen_table.business_name or GenUtils.convert_table_name(table_name)
+            module_name = gen_table.module_name or GenConfig.package_name
+            package_name = gen_table.package_name or GenConfig.package_name
+            
+            # 构建文件路径（根据代码生成器的规则）
+            # 后端文件路径
+            backend_base_path = os.path.join(os.getcwd(), package_name, business_name)
+            
+            # 需要删除的文件列表
+            files_to_delete = [
+                # Controller
+                os.path.join(backend_base_path, 'controller', f'{business_name}_controller.py'),
+                # Service
+                os.path.join(backend_base_path, 'service', f'{business_name}_service.py'),
+                # DAO
+                os.path.join(backend_base_path, 'dao', f'{business_name}_dao.py'),
+                # DO
+                os.path.join(backend_base_path, 'entity', 'do', f'{business_name}_do.py'),
+                # VO
+                os.path.join(backend_base_path, 'entity', 'vo', f'{business_name}_vo.py'),
+            ]
+            
+            # 前端文件路径（固定路径）
+            # 前端项目根路径
+            frontend_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), '..', '..', '..', 'ruoyi-fastapi-frontend')
+            )
+            
+            # Vue 文件路径：src/views/{module_name}/{business_name}/index.vue
+            frontend_view_path = os.path.join(frontend_path, 'src', 'views', module_name, business_name, 'index.vue')
+            # API 文件路径：src/api/{module_name}/{business_name}.js
+            frontend_api_path = os.path.join(frontend_path, 'src', 'api', module_name, f'{business_name}.js')
+            
+            files_to_delete.extend([frontend_view_path, frontend_api_path])
+            
+            # 删除文件
+            for file_path in files_to_delete:
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                        deleted_count += 1
+                        logger.info(f'已删除文件: {file_path}')
+                    except Exception as e:
+                        logger.warning(f'删除文件失败: {file_path}, 错误: {str(e)}')
+                else:
+                    logger.debug(f'文件不存在，跳过删除: {file_path}')
+            
+            # 删除空目录
+            await cls._remove_empty_dirs(backend_base_path)
+            
+            # 删除前端空目录
+            frontend_view_dir = os.path.join(frontend_path, 'src', 'views', module_name, business_name)
+            if os.path.exists(frontend_view_dir) and not os.listdir(frontend_view_dir):
+                try:
+                    os.rmdir(frontend_view_dir)
+                    logger.info(f'已删除空目录: {frontend_view_dir}')
+                    # 尝试删除父目录（如果也为空）
+                    parent_dir = os.path.dirname(frontend_view_dir)
+                    if os.path.exists(parent_dir) and not os.listdir(parent_dir):
+                        os.rmdir(parent_dir)
+                        logger.info(f'已删除空目录: {parent_dir}')
+                except Exception as e:
+                    logger.warning(f'删除空目录失败: {frontend_view_dir}, 错误: {str(e)}')
+            
+        except Exception as e:
+            logger.error(f'删除生成文件时出错: {str(e)}')
+        
+        return deleted_count
+
+    @classmethod
+    async def _remove_empty_dirs(cls, path: str):
+        """
+        递归删除空目录
+
+        :param path: 目录路径
+        """
+        try:
+            if os.path.exists(path) and os.path.isdir(path):
+                # 先删除子目录
+                for item in os.listdir(path):
+                    item_path = os.path.join(path, item)
+                    if os.path.isdir(item_path):
+                        await cls._remove_empty_dirs(item_path)
+                
+                # 如果目录为空，则删除
+                if not os.listdir(path):
+                    os.rmdir(path)
+                    logger.info(f'已删除空目录: {path}')
+        except Exception as e:
+            logger.warning(f'删除空目录失败: {path}, 错误: {str(e)}')
+
 
     @classmethod
     async def get_gen_table_by_id_services(cls, query_db: AsyncSession, table_id: int) -> GenTableModel:
@@ -594,6 +729,8 @@ class GenTableService:
                 raise ServiceException(message='生成业务名不能为空，请先在"编辑"页面的"生成信息"页签中配置')
             if not gen_table.module_name:
                 raise ServiceException(message='生成模块名不能为空，请先在"编辑"页面的"生成信息"页签中配置')
+            if not gen_table.parent_menu_id or gen_table.parent_menu_id == 0:
+                raise ServiceException(message='上级菜单不能为空，请先在"编辑"页面的"生成信息"页签中选择上级菜单')
             
             # 使用 CamelCaseUtil 转换（不触发 Pydantic 验证）
             table_dict = CamelCaseUtil.transform_result(gen_table)
@@ -603,8 +740,8 @@ class GenTableService:
             
             logger.info(f'生成菜单 - 功能名: {table_info.function_name}')
             
-            # 获取父菜单ID，如果没有配置则使用0（顶级菜单）
-            parent_menu_id = table_info.parent_menu_id if table_info.parent_menu_id else 0
+            # 获取父菜单ID（已在前面验证过不为空）
+            parent_menu_id = table_info.parent_menu_id
             
             # 构建权限标识前缀：模块名:业务名
             perms_prefix = f'{table_info.module_name}:{table_info.business_name}'

@@ -2,7 +2,7 @@
   <div class="ui-showcase">
     <div class="showcase-header gradient-bg">
       <h1>🎨 现代化 UI 组件展示</h1>
-      <p>RuoYi-FastAPI 现代化设计系统</p>
+      <p>宥辰开发平台 现代化设计系统</p>
     </div>
 
     <div class="showcase-content">

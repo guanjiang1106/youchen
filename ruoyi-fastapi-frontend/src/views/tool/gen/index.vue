@@ -88,6 +88,15 @@
           v-hasPermi="['tool:gen:remove']"
         >删除</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="el-icon-question"
+          size="mini"
+          @click="handleGuide"
+        >操作指南</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -296,7 +305,7 @@ export default {
           this.$modal.msgSuccess(response.msg || "生成代码成功");
         });
       } else {
-        const zipName = Array.isArray(tableNames) ? "vfadmin.zip" : tableNames + ".zip"
+        const zipName = Array.isArray(tableNames) ? "ruoyi.zip" : tableNames + ".zip"
         this.$download.zip("/tool/gen/batchGenCode?tables=" + tableNames, zipName)
       }
     },
@@ -372,15 +381,57 @@ export default {
       const params = { pageNum: this.queryParams.pageNum };
       this.$tab.openPage("修改[" + tableName + "]生成配置", '/tool/gen-edit/index/' + tableId, params);
     },
+    /** 操作指南按钮 */
+    handleGuide() {
+      this.$tab.openPage("代码生成器操作指南", '/tool/gen-guide/index');
+    },
     /** 删除按钮操作 */
     handleDelete(row) {
       const tableIds = row.tableId || this.ids;
-      this.$modal.confirm('是否确认删除表编号为"' + tableIds + '"的数据项？').then(function() {
+      const tableName = row.tableName || this.tableNames.join(',');
+      
+      // 构建详细的删除提示信息
+      const deleteMessage = `
+        <div style="text-align: left; line-height: 1.8;">
+          <p style="margin-bottom: 10px;"><strong>删除后将同时删除以下内容：</strong></p>
+          <p style="margin-left: 20px;">1. 数据库表（包括表结构和数据）</p>
+          <p style="margin-left: 20px;">2. 数据库中的代码生成配置记录</p>
+          <p style="margin-left: 20px;">3. 已生成到本地的相关代码文件（如果存在）：</p>
+          <p style="margin-left: 40px;">• Controller 层文件</p>
+          <p style="margin-left: 40px;">• Service 层文件</p>
+          <p style="margin-left: 40px;">• DAO 层文件</p>
+          <p style="margin-left: 40px;">• Entity 实体文件（DO/VO）</p>
+          <p style="margin-left: 40px;">• 前端 Vue 页面和 API 文件</p>
+          <p style="margin-top: 15px; color: #F56C6C;"><strong>此操作不可恢复，请谨慎操作！</strong></p>
+        </div>
+      `;
+      
+      // 使用 MessageBox 显示删除选项
+      this.$confirm(
+        deleteMessage,
+        '确认删除表"' + tableName + '"吗？',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'warning',
+          distinguishCancelAndClose: true,
+          showClose: true,
+          closeOnClickModal: false,
+          closeOnPressEscape: false,
+          center: false,
+          dangerouslyUseHTMLString: true
+        }
+      ).then(() => {
         return delTable(tableIds);
-      }).then(() => {
+      }).then((response) => {
         this.getList();
-        this.$modal.msgSuccess("删除成功");
-      }).catch(() => {});
+        this.$modal.msgSuccess(response.msg || "删除成功");
+      }).catch(action => {
+        // 用户点击取消或关闭
+        if (action === 'cancel') {
+          // 可以添加取消提示
+        }
+      });
     },
     /** 界面重构操作 */
     handleRefactor(row) {

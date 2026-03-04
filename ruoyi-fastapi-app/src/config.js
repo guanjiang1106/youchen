@@ -10,7 +10,7 @@ module.exports = {
     // 应用logo
     logo: "/static/logo.png",
     // 官方网站
-    site_url: "https://vfadmin.insistence.tech",
+    site_url: "https://gitee.com/y_project/RuoYi-FastAPI",
     // 政策协议
     agreements: [
       {

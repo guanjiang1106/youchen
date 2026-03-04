@@ -141,6 +141,9 @@ class LoggerInitializer:
             logging.getLogger(logger_name).propagate = False
         for logger_name in ('LiteLLM', 'litellm'):
             logging.getLogger(logger_name).setLevel(logging.WARNING)
+        # 抑制 SQLAlchemy 的详细日志输出
+        for logger_name in ('sqlalchemy.engine', 'sqlalchemy.pool', 'sqlalchemy.dialects', 'sqlalchemy.orm'):
+            logging.getLogger(logger_name).setLevel(logging.WARNING)
 
     def init_log(self) -> Logger:
         """

@@ -117,7 +117,7 @@
           <div class="info-list">
             <div class="info-item">
               <span class="info-label">系统版本：</span>
-              <span class="info-value">RuoYi-FastAPI v1.9.0</span>
+              <span class="info-value">宥辰开发平台 v1.9.0</span>
             </div>
             <div class="info-item">
               <span class="info-label">后端框架：</span>

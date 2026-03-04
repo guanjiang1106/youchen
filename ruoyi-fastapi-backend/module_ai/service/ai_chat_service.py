@@ -30,9 +30,12 @@ from module_ai.entity.vo.ai_chat_vo import (
     SessionMetricsModel,
 )
 from module_ai.entity.vo.ai_model_vo import AiModelModel
+from module_ai.service.ai_skill_service import AiSkillService
+from module_ai.utils.tool_display_formatter import format_tool_call, format_tool_result
 from utils.ai_util import AiUtil
 from utils.common_util import CamelCaseUtil
 from utils.crypto_util import CryptoUtil
+from utils.log_util import logger
 
 if TYPE_CHECKING:
     from agno.models.message import Message
@@ -45,6 +48,29 @@ class AiChatService:
     """
     AI对话服务层
     """
+
+    @staticmethod
+    def _safe_json_serialize(obj: Any) -> Any:
+        """
+        安全地序列化对象为 JSON 兼容的格式
+
+        :param obj: 要序列化的对象
+        :return: JSON 兼容的对象
+        """
+        if obj is None:
+            return None
+        if isinstance(obj, (str, int, float, bool)):
+            return obj
+        if isinstance(obj, (list, tuple)):
+            return [AiChatService._safe_json_serialize(item) for item in obj]
+        if isinstance(obj, dict):
+            return {k: AiChatService._safe_json_serialize(v) for k, v in obj.items()}
+        if hasattr(obj, '__dict__'):
+            try:
+                return {k: AiChatService._safe_json_serialize(v) for k, v in obj.__dict__.items() if not k.startswith('_')}
+            except Exception:
+                return str(obj)
+        return str(obj)
 
     @classmethod
     def _resolve_temperature(cls, user_config: AiChatConfigModel, model_config: AiModelModel) -> float:
@@ -82,6 +108,10 @@ class AiChatService:
         add_history = user_config.add_history_to_context == '0'
         num_history = user_config.num_history_runs or 3
 
+        # 添加调试日志
+        logger.info(f'历史消息配置 - add_history_to_context: {user_config.add_history_to_context}, '
+                   f'add_history: {add_history}, num_history: {num_history}')
+
         return bool(add_history), int(num_history)
 
     @classmethod
@@ -94,6 +124,7 @@ class AiChatService:
         session_id: str,
         add_history: bool,
         num_history: int,
+        tools: list | None = None,
     ) -> Agent:
         """
         构建对话Agent对象
@@ -105,6 +136,7 @@ class AiChatService:
         :param session_id: 会话ID
         :param add_history: 是否附带历史消息
         :param num_history: 历史消息轮数
+        :param tools: 工具列表（可选）
         :return: Agent对象
         """
         real_api_key = CryptoUtil.decrypt(model_config.api_key)
@@ -119,17 +151,28 @@ class AiChatService:
             max_tokens=model_config.max_tokens,
         )
         storage = AiUtil.get_storage_engine()
-        return Agent(
-            model=model,
-            id='chat-agent',
-            description=system_prompt or 'You are a helpful AI assistant.',
-            db=storage,
-            user_id=str(user_id),
-            session_id=session_id,
-            add_history_to_context=add_history,
-            num_history_runs=num_history,
-            markdown=True,
-        )
+        
+        agent_kwargs = {
+            'model': model,
+            'id': 'chat-agent',
+            'description': system_prompt or 'You are a helpful AI assistant.',
+            'db': storage,
+            'user_id': str(user_id),
+            'session_id': session_id,
+            'add_history_to_context': add_history,
+            'num_history_runs': num_history,
+            'markdown': True,
+        }
+        
+        # 添加调试日志
+        logger.info(f'构建Agent - session_id: {session_id}, add_history: {add_history}, '
+                   f'num_history: {num_history}, user_id: {user_id}')
+        
+        # 如果提供了工具，添加到 Agent
+        if tools:
+            agent_kwargs['tools'] = tools
+        
+        return Agent(**agent_kwargs)
 
     @classmethod
     def _build_run_kwargs(
@@ -220,16 +263,147 @@ class AiChatService:
         full_response = ''
         full_reasoning = ''
         try:
-            yield json.dumps({'session_id': session_id, 'type': 'meta'}) + '\n'
+            yield json.dumps({'session_id': session_id, 'type': 'meta'}, ensure_ascii=False) + '\n'
 
             response_stream: AsyncIterator[RunOutputEvent] = agent.arun(chat_req.message, **run_kwargs)
 
             async for chunk in response_stream:
+                # 调试：打印每个 chunk 的基本信息
+                logger.debug(f'Received chunk event: {chunk.event}')
+                
                 content = None
                 reasoning = None
 
                 if chunk.event == RunEvent.run_started and chunk.run_id:
-                    yield json.dumps({'run_id': chunk.run_id, 'type': 'run_info'}) + '\n'
+                    yield json.dumps({'run_id': chunk.run_id, 'type': 'run_info'}, ensure_ascii=False) + '\n'
+
+                # 工具调用开始事件
+                if chunk.event == RunEvent.tool_call_started:
+                    # 调试：打印 chunk 的所有属性和值
+                    logger.info(f'🔍 tool_call_started chunk type: {type(chunk)}')
+                    logger.info(f'🔍 tool_call_started chunk.__dict__: {getattr(chunk, "__dict__", {})}')
+                    
+                    # 尝试访问可能的属性
+                    possible_attrs = ['tool_name', 'tool', 'function_name', 'name', 'tool_call', 'function', 'call']
+                    for attr in possible_attrs:
+                        value = getattr(chunk, attr, None)
+                        if value is not None:
+                            logger.info(f'🔍 Found attribute {attr}: {value}')
+                    
+                    # 尝试多种可能的属性名
+                    tool_name = (
+                        getattr(chunk, 'tool_name', None) or
+                        getattr(chunk, 'tool', None) or
+                        getattr(chunk, 'function_name', None) or
+                        getattr(chunk, 'name', None) or
+                        'unknown'
+                    )
+                    tool_args_raw = (
+                        getattr(chunk, 'tool_args', None) or
+                        getattr(chunk, 'arguments', None) or
+                        getattr(chunk, 'args', None) or
+                        {}
+                    )
+                    
+                    # 使用安全序列化
+                    tool_args = cls._safe_json_serialize(tool_args_raw)
+                    
+                    logger.info(f'🔧 Tool call started: {tool_name}')
+                    
+                    # 使用格式化器生成业务友好的显示
+                    friendly_display = format_tool_call(str(tool_name), tool_args)
+                    
+                    # 立即发送"执行中"状态
+                    yield json.dumps({
+                        'type': 'tool_call_started',
+                        'tool_name': str(tool_name),
+                        'tool_args': tool_args,
+                        'display': friendly_display,  # 业务友好显示
+                        'message': f'⏳ 正在执行工具: {tool_name}',
+                        'status': 'running'  # 明确标记为运行中
+                    }, ensure_ascii=False) + '\n'
+
+                # 工具调用完成事件
+                if chunk.event == RunEvent.tool_call_completed:
+                    # 调试：打印 chunk 的所有属性
+                    logger.debug(f'tool_call_completed chunk attributes: {dir(chunk)}')
+                    logger.debug(f'tool_call_completed chunk dict: {chunk.__dict__ if hasattr(chunk, "__dict__") else "no __dict__"}')
+                    
+                    # 尝试多种可能的属性名
+                    tool_name = (
+                        getattr(chunk, 'tool_name', None) or
+                        getattr(chunk, 'tool', None) or
+                        getattr(chunk, 'function_name', None) or
+                        getattr(chunk, 'name', None) or
+                        'unknown'
+                    )
+                    tool_result_raw = (
+                        getattr(chunk, 'tool_result', None) or
+                        getattr(chunk, 'result', None) or
+                        getattr(chunk, 'output', None) or
+                        ''
+                    )
+                    
+                    # 使用安全序列化并转换为字符串
+                    tool_result = cls._safe_json_serialize(tool_result_raw)
+                    if not isinstance(tool_result, str):
+                        try:
+                            tool_result = json.dumps(tool_result, ensure_ascii=False)
+                        except Exception:
+                            tool_result = str(tool_result)
+                    
+                    logger.info(f'✅ Tool call completed: {tool_name}')
+                    
+                    # 使用格式化器生成业务友好的显示
+                    friendly_display = format_tool_result(str(tool_name), tool_result, success=True)
+                    
+                    # 截断过长的结果
+                    result_preview = tool_result[:200] + '...' if len(tool_result) > 200 else tool_result
+                    yield json.dumps({
+                        'type': 'tool_call_completed',
+                        'tool_name': str(tool_name),
+                        'result': result_preview,
+                        'display': friendly_display,  # 业务友好显示
+                        'message': f'✅ 工具执行完成: {tool_name}',
+                        'status': 'completed'  # 明确标记为已完成
+                    }, ensure_ascii=False) + '\n'
+
+                # 工具调用错误事件
+                if chunk.event == RunEvent.tool_call_error:
+                    # 调试：打印 chunk 的所有属性
+                    logger.debug(f'tool_call_error chunk attributes: {dir(chunk)}')
+                    logger.debug(f'tool_call_error chunk dict: {chunk.__dict__ if hasattr(chunk, "__dict__") else "no __dict__"}')
+                    
+                    # 尝试多种可能的属性名
+                    tool_name = (
+                        getattr(chunk, 'tool_name', None) or
+                        getattr(chunk, 'tool', None) or
+                        getattr(chunk, 'function_name', None) or
+                        getattr(chunk, 'name', None) or
+                        'unknown'
+                    )
+                    error_raw = (
+                        getattr(chunk, 'error', None) or
+                        getattr(chunk, 'exception', None) or
+                        getattr(chunk, 'message', None) or
+                        'Unknown error'
+                    )
+                    
+                    # 安全地转换错误信息为字符串
+                    error = str(cls._safe_json_serialize(error_raw))
+                    
+                    logger.error(f'❌ Tool call error: {tool_name} - {error}')
+                    
+                    # 使用格式化器生成业务友好的显示
+                    friendly_display = format_tool_result(str(tool_name), error, success=False)
+                    
+                    yield json.dumps({
+                        'type': 'tool_call_error',
+                        'tool_name': str(tool_name),
+                        'error': error,
+                        'display': friendly_display,  # 业务友好显示
+                        'message': f'❌ 错误: {tool_name}'
+                    }, ensure_ascii=False) + '\n'
 
                 if chunk.event == RunEvent.run_content:
                     content = chunk.content
@@ -238,21 +412,23 @@ class AiChatService:
 
                 if reasoning and is_reasoning:
                     full_reasoning += reasoning
-                    yield json.dumps({'content': reasoning, 'type': 'reasoning'}) + '\n'
+                    yield json.dumps({'content': reasoning, 'type': 'reasoning'}, ensure_ascii=False) + '\n'
 
                 if chunk.event == RunEvent.run_completed and chunk.metrics:
                     yield (
                         json.dumps(
-                            {'metrics': CamelCaseUtil.transform_result(chunk.metrics.to_dict()), 'type': 'metrics'}
+                            {'metrics': CamelCaseUtil.transform_result(chunk.metrics.to_dict()), 'type': 'metrics'},
+                            ensure_ascii=False
                         )
                         + '\n'
                     )
 
                 if content:
                     full_response += content
-                    yield json.dumps({'content': content, 'type': 'content'}) + '\n'
+                    yield json.dumps({'content': content, 'type': 'content'}, ensure_ascii=False) + '\n'
         except Exception as e:
-            yield json.dumps({'error': str(e), 'type': 'error'}) + '\n'
+            logger.exception(f'Stream agent error: {e}')
+            yield json.dumps({'error': str(e), 'type': 'error'}, ensure_ascii=False) + '\n'
 
     @classmethod
     async def chat_services(
@@ -282,6 +458,36 @@ class AiChatService:
         add_history, num_history = cls._resolve_history_config(user_config)
         system_prompt = user_config.system_prompt
 
+        # === 加载技能并注入到系统提示词 ===
+        try:
+            available_skills = await AiSkillService.load_available_skills(user_id, query_db)
+            logger.info(f'Loaded {len(available_skills)} skills for user {user_id}')
+            
+            # 构建技能 Prompt
+            if available_skills:
+                skills_prompt = AiSkillService.format_skills_for_prompt(available_skills)
+                logger.info(f'Skills prompt length: {len(skills_prompt)} chars')
+                
+                # 注入技能到系统提示词（OpenClaw 方式）
+                if skills_prompt:
+                    system_prompt = f'{system_prompt or "You are a helpful AI assistant."}\n\n{skills_prompt}'
+                    logger.info(f'Injected {len(available_skills)} skills into system prompt')
+        except Exception as e:
+            logger.warning(f'Failed to load or format skills: {e}')
+        
+        # === 添加输出目录提示 ===
+        from module_ai.tools.exec_tool import AI_OUTPUT_DIR
+        output_dir_prompt = f'\n\n重要提示：当你需要生成文件（如 PPT、Excel、Word 等）时，请将文件保存到以下目录：\n输出目录：{AI_OUTPUT_DIR}\n所有生成的文件都应该保存在这个目录中，方便用户查找和管理。'
+        system_prompt = f'{system_prompt or "You are a helpful AI assistant."}{output_dir_prompt}'
+        
+        # === 添加基础执行工具（OpenClaw 方式）===
+        # 提供通用的 exec 工具，让 AI 读取技能说明后自己决定执行什么命令
+        from module_ai.tools.exec_tool import execute_command, execute_python_code
+        from module_ai.tools.web_tool import fetch_wikipedia_info, search_web
+        
+        all_tools = [execute_command, execute_python_code, fetch_wikipedia_info, search_web]
+        logger.info(f'Providing {len(all_tools)} execution tools for AI to use with skills')
+
         agent = cls._build_agent(
             model_config=model_config,
             temperature=temperature,
@@ -290,6 +496,7 @@ class AiChatService:
             session_id=session_id,
             add_history=add_history,
             num_history=num_history,
+            tools=all_tools,
         )
         run_kwargs = cls._build_run_kwargs(chat_req, user_config)
         async for chunk in cls._stream_agent(
@@ -311,7 +518,17 @@ class AiChatService:
         :return: 配置模型
         """
         chat_config = await AiChatConfigDao.get_chat_config_detail_by_user_id(query_db, user_id)
-        result = AiChatConfigModel(**CamelCaseUtil.transform_result(chat_config)) if chat_config else AiChatConfig()
+        if chat_config:
+            result = AiChatConfigModel(**CamelCaseUtil.transform_result(chat_config))
+        else:
+            # 返回默认配置
+            result = AiChatConfigModel(
+                add_history_to_context='0',  # 默认开启历史消息
+                num_history_runs=3,          # 默认3轮历史
+            )
+        
+        logger.info(f'获取用户配置 - user_id: {user_id}, add_history_to_context: {result.add_history_to_context}, '
+                   f'num_history_runs: {result.num_history_runs}')
 
         return result
 

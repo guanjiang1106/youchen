@@ -26,8 +26,13 @@ pydantic>=2.11.4
 pydantic-validation-decorator==0.1.5
 PyJWT[crypto]==2.11.0
 PyMySQL==1.1.2
+python-frontmatter==1.1.0
 redis==7.1.0
 ruff==0.15.0
 SQLAlchemy[asyncio]==2.0.46
 sqlglot[rs]==28.10.0
 user-agents==2.2.0
+pytest==7.4.4
+pytest-asyncio==0.21.2
+pytest-cov==4.1.0
+httpx==0.28.1

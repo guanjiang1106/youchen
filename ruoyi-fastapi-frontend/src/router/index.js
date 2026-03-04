@@ -166,6 +166,19 @@ export const dynamicRoutes = [
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
       }
     ]
+  },
+  {
+    path: '/tool/gen-guide',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/tool/gen/guide'),
+        name: 'GenGuide',
+        meta: { title: '代码生成器操作指南', activeMenu: '/tool/gen' }
+      }
+    ]
   }
 ]
 

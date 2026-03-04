@@ -1,6 +1,6 @@
  /**
  * v-hasRole 角色权限处理
- * Copyright (c) 2019 ruoyi
+ * Copyright (c) 2024 YouChen
  */
 
 import store from '@/store'

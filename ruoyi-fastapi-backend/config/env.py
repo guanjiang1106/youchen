@@ -113,9 +113,9 @@ class GenSettings:
     """
 
     author = 'insistence'
-    package_name = 'module_admin'  # 修正：应该是 module_admin，不是 module_admin.system
-    auto_remove_pre = False
-    table_prefix = 'sys_'
+    package_name = 'module_business'  # 业务模块统一生成到 module_business，与系统模块分离
+    auto_remove_pre = True  # 自动去除表前缀
+    table_prefix = 'sys_,biz_'  # 系统表前缀和业务表前缀（多个用逗号分隔）
     allow_overwrite = True  # 允许生成代码到本地（开发环境建议开启，生产环境建议关闭）
 
     GEN_PATH = 'vf_admin/gen_path'
@@ -180,6 +180,40 @@ class CachePathConfig:
     PATHSTR = 'caches'
 
 
+class SkillSettings(BaseSettings):
+    """
+    技能系统配置
+    """
+
+    # 技能目录（多个目录用逗号分隔）
+    skill_dirs: str = '~/.ruoyi-fastapi/skills,./module_ai/skills/bundled'
+
+    # 技能限制
+    skill_max_skills_in_prompt: int = 150
+    skill_max_skills_prompt_chars: int = 30000
+    skill_max_skill_file_bytes: int = 256000  # 256KB
+    skill_max_candidates_per_root: int = 300
+    skill_max_skills_loaded_per_source: int = 200
+
+    # 执行配置
+    skill_execution_timeout: int = 30  # 秒
+    skill_enable_sandbox: bool = False  # 是否启用沙箱（暂未实现）
+
+    # 缓存配置
+    skill_cache_enabled: bool = True
+    skill_cache_ttl: int = 3600  # 1小时
+
+    @computed_field
+    @property
+    def skills_dirs_list(self) -> list[str]:
+        """
+        获取技能目录列表
+
+        :return: 技能目录路径列表
+        """
+        return [d.strip() for d in self.skill_dirs.split(',') if d.strip()]
+
+
 class GetConfig:
     """
     获取配置
@@ -236,6 +270,13 @@ class GetConfig:
         # 实例上传配置
         return UploadSettings()
 
+    def get_skill_config(self) -> SkillSettings:
+        """
+        获取技能系统配置
+        """
+        # 实例化技能配置
+        return SkillSettings()
+
     @staticmethod
     def parse_cli_args() -> None:
         """
@@ -287,3 +328,5 @@ LogConfig = get_config.get_log_config()
 GenConfig = get_config.get_gen_config()
 # 上传配置
 UploadConfig = get_config.get_upload_config()
+# 技能系统配置
+SkillConfig = get_config.get_skill_config()

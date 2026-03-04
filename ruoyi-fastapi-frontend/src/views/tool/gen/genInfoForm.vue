@@ -82,7 +82,7 @@
       </el-col>
 
       <el-col :span="12">
-        <el-form-item>
+        <el-form-item prop="parentMenuId">
           <span slot="label">
             上级菜单
             <el-tooltip content="分配到指定菜单下，例如 系统管理" placement="top">
@@ -260,6 +260,9 @@ export default {
         ],
         functionName: [
           { required: true, message: "请输入生成功能名", trigger: "blur" }
+        ],
+        parentMenuId: [
+          { required: true, message: "请选择上级菜单", trigger: "change" }
         ],
       }
     };

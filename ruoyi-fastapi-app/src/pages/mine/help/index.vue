@@ -46,12 +46,12 @@ export default {
               content: "可以",
             },
             {
-              title: "RuoYi-FastAPI官网地址多少？",
-              content: "https://vfadmin.insistence.tech",
+              title: "若依管理系统官网地址多少？",
+              content: "https://gitee.com/y_project/RuoYi-FastAPI",
             },
             {
-              title: "RuoYi-FastAPI文档地址多少？",
-              content: "https://vfadmin.insistence.tech",
+              title: "若依管理系统文档地址多少？",
+              content: "https://gitee.com/y_project/RuoYi-FastAPI",
             },
           ],
         },

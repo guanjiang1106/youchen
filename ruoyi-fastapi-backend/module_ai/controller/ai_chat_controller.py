@@ -50,7 +50,16 @@ async def send_chat_message(
     chat_stream = AiChatService.chat_services(query_db, chat_req, user_id)
     logger.info(f'用户{user_id}发送对话消息成功')
 
-    return StreamingResponse(content=chat_stream, media_type='text/event-stream')
+    return StreamingResponse(
+        content=chat_stream,
+        media_type='text/event-stream; charset=utf-8',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',  # 禁用 Nginx 缓冲
+            'Connection': 'keep-alive',
+            'Content-Type': 'text/event-stream; charset=utf-8',
+        },
+    )
 
 
 @ai_chat_controller.get(

@@ -551,7 +551,12 @@ export default {
     /** 提交按钮 */
     submitForm() {
       // 先进行字段配置校验
+      console.log('开始字段配置校验...');
+      console.log('当前字段数据:', this.columns);
+      
       const validationResult = this.validateColumns();
+      console.log('校验结果:', validationResult);
+      
       if (!validationResult.valid) {
         // 使用更友好的弹窗显示错误信息
         this.$alert(validationResult.message, '字段配置校验失败', {
@@ -597,8 +602,22 @@ export default {
         const rowNum = index + 1;
         const fieldName = column.columnComment || column.columnName;
         
+        // 标准化字段值（将空字符串转为 null）
+        const dictType = column.dictType && column.dictType.trim() !== '' ? column.dictType : null;
+        const linkTable = column.linkTable && column.linkTable.trim() !== '' ? column.linkTable : null;
+        
+        // 调试日志
+        console.log(`检查第 ${rowNum} 行 [${fieldName}]:`, {
+          dictType: dictType,
+          linkTable: linkTable,
+          htmlType: column.htmlType,
+          原始dictType: column.dictType,
+          原始linkTable: column.linkTable
+        });
+        
         // 检查字典类型和关联表是否同时配置
-        if (column.dictType && column.linkTable) {
+        if (dictType && linkTable) {
+          console.log(`发现冲突: 第 ${rowNum} 行 [${fieldName}] 同时配置了字典类型和关联表`);
           errors.push({
             row: rowNum,
             field: fieldName,
@@ -608,7 +627,7 @@ export default {
         }
         
         // 检查关联表配置的完整性
-        if (column.linkTable) {
+        if (linkTable) {
           // 只有下拉框、单选框、复选框才需要关联表
           if (!['select', 'radio', 'checkbox'].includes(column.htmlType)) {
             errors.push({
@@ -619,7 +638,10 @@ export default {
             });
           } else {
             // 检查是否配置了标签字段和值字段
-            if (!column.linkLabelField) {
+            const linkLabelField = column.linkLabelField && column.linkLabelField.trim() !== '' ? column.linkLabelField : null;
+            const linkValueField = column.linkValueField && column.linkValueField.trim() !== '' ? column.linkValueField : null;
+            
+            if (!linkLabelField) {
               errors.push({
                 row: rowNum,
                 field: fieldName,
@@ -627,7 +649,7 @@ export default {
                 type: 'incomplete'
               });
             }
-            if (!column.linkValueField) {
+            if (!linkValueField) {
               errors.push({
                 row: rowNum,
                 field: fieldName,
@@ -650,7 +672,7 @@ export default {
         }
         
         // 检查字典类型配置的合理性
-        if (column.dictType) {
+        if (dictType) {
           // 只有下拉框、单选框、复选框才需要字典
           if (!['select', 'radio', 'checkbox'].includes(column.htmlType)) {
             errors.push({
@@ -664,7 +686,7 @@ export default {
         
         // 检查下拉框、单选框、复选框是否配置了数据源
         if (['select', 'radio', 'checkbox'].includes(column.htmlType)) {
-          if (!column.dictType && !column.linkTable) {
+          if (!dictType && !linkTable) {
             errors.push({
               row: rowNum,
               field: fieldName,

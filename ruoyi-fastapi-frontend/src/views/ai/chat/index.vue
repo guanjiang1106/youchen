@@ -143,8 +143,57 @@
                     :content="msg.content"
                     :reasoning-content="msg.reasoningContent"
                     :loading="loading && index === messageList.length - 1"
+                    :is-typing="msg.isTyping"
                     :is-dark="isDark"
                   />
+                </div>
+                
+                <!-- 工具调用显示 -->
+                <div v-if="msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0" class="tool-calls-container">
+                  <div
+                    v-for="(toolCall, tcIdx) in msg.toolCalls"
+                    :key="tcIdx"
+                    :class="['tool-call-item', `tool-call-${toolCall.status}`]"
+                  >
+                    <!-- 业务友好显示（优先） -->
+                    <div v-if="toolCall.display" class="tool-call-display">
+                      <pre class="tool-call-friendly">{{ toolCall.display }}</pre>
+                    </div>
+                    
+                    <!-- 传统显示（兼容旧数据或作为备用） -->
+                    <div v-else>
+                      <div class="tool-call-header">
+                        <span class="tool-call-icon">
+                          <i v-if="toolCall.status === 'running'" class="el-icon-loading"></i>
+                          <i v-else-if="toolCall.status === 'completed'" class="el-icon-success" style="color: #67c23a;"></i>
+                          <i v-else-if="toolCall.status === 'error'" class="el-icon-error" style="color: #f56c6c;"></i>
+                        </span>
+                        <span class="tool-call-name">🔧 {{ toolCall.name }}</span>
+                        <span v-if="toolCall.status === 'running'" class="tool-call-status">执行中...</span>
+                        <span v-else-if="toolCall.status === 'completed'" class="tool-call-status" style="color: #67c23a;">✓ 完成</span>
+                        <span v-else-if="toolCall.status === 'error'" class="tool-call-status" style="color: #f56c6c;">✗ 失败</span>
+                      </div>
+                    </div>
+                    
+                    <!-- 技术详情（可折叠） -->
+                    <div v-if="toolCall.args && Object.keys(toolCall.args).length > 0" class="tool-call-args">
+                      <el-collapse accordion>
+                        <el-collapse-item title="查看技术详情" name="1">
+                          <pre class="tool-call-code">{{ JSON.stringify(toolCall.args, null, 2) }}</pre>
+                        </el-collapse-item>
+                      </el-collapse>
+                    </div>
+                    <div v-if="toolCall.result && !toolCall.display" class="tool-call-result">
+                      <el-collapse accordion>
+                        <el-collapse-item title="查看结果" name="1">
+                          <pre class="tool-call-code">{{ toolCall.result }}</pre>
+                        </el-collapse-item>
+                      </el-collapse>
+                    </div>
+                    <div v-if="toolCall.error && !toolCall.display" class="tool-call-error">
+                      <span style="color: #f56c6c;">错误: {{ toolCall.error }}</span>
+                    </div>
+                  </div>
                 </div>
                 <div class="message-footer">
                   <div class="footer-actions">
@@ -661,6 +710,7 @@ export default {
         role: "assistant",
         content: "",
         reasoningContent: "",
+        toolCalls: [], // 工具调用记录
       });
       const aiMsgIndex = this.messageList.length - 1;
 
@@ -692,7 +742,7 @@ export default {
         );
 
         const reader = response.body.getReader();
-        const decoder = new TextDecoder();
+        const decoder = new TextDecoder('utf-8');
         let aiContent = "";
         let aiReasoning = "";
         let buffer = "";
@@ -712,8 +762,20 @@ export default {
             try {
               const data = JSON.parse(line);
               if (data.type === "content") {
-                aiContent += data.content;
+                // 流式打字机效果：逐字符添加
+                const newContent = data.content;
+                aiContent += newContent;
+                
+                // 使用 Vue.set 确保响应式更新
                 this.$set(this.messageList[aiMsgIndex], "content", aiContent);
+                this.$set(this.messageList[aiMsgIndex], "isTyping", true);
+                
+                // 平滑滚动到底部
+                this.$nextTick(() => {
+                  if (this.isAutoScroll) {
+                    this.scrollToBottom();
+                  }
+                });
               } else if (data.type === "reasoning") {
                 aiReasoning += data.content;
                 this.$set(
@@ -721,6 +783,51 @@ export default {
                   "reasoningContent",
                   aiReasoning
                 );
+                this.$nextTick(() => {
+                  if (this.isAutoScroll) {
+                    this.scrollToBottom();
+                  }
+                });
+              } else if (data.type === "tool_call_started") {
+                // 工具调用开始
+                console.log('🔧 Tool call started:', data);
+                const toolCall = {
+                  id: data.tool_call_id || Date.now(),
+                  name: data.tool_name,
+                  args: data.tool_args,
+                  display: data.display,  // 业务友好显示
+                  status: 'running',
+                  startTime: new Date().toISOString(),
+                };
+                if (!this.messageList[aiMsgIndex].toolCalls) {
+                  this.$set(this.messageList[aiMsgIndex], 'toolCalls', []);
+                }
+                this.messageList[aiMsgIndex].toolCalls.push(toolCall);
+                console.log('🔧 Tool calls array:', this.messageList[aiMsgIndex].toolCalls);
+              } else if (data.type === "tool_call_completed") {
+                // 工具调用完成
+                console.log('✅ Tool call completed:', data);
+                const toolCalls = this.messageList[aiMsgIndex].toolCalls || [];
+                const toolCall = toolCalls.find(t => t.name === data.tool_name && t.status === 'running');
+                console.log('✅ Found tool call:', toolCall);
+                if (toolCall) {
+                  toolCall.status = 'completed';
+                  toolCall.result = data.result;
+                  toolCall.display = data.display;  // 业务友好显示
+                  toolCall.endTime = new Date().toISOString();
+                  console.log('✅ Updated tool call:', toolCall);
+                }
+              } else if (data.type === "tool_call_error") {
+                // 工具调用失败
+                console.log('❌ Tool call error:', data);
+                const toolCalls = this.messageList[aiMsgIndex].toolCalls || [];
+                const toolCall = toolCalls.find(t => t.name === data.tool_name && t.status === 'running');
+                if (toolCall) {
+                  toolCall.status = 'error';
+                  toolCall.error = data.error;
+                  toolCall.display = data.display;  // 业务友好显示
+                  toolCall.endTime = new Date().toISOString();
+                }
               } else if (data.type === "meta") {
                 this.currentSessionId = data.session_id;
                 if (
@@ -747,6 +854,11 @@ export default {
 
         if (needRefreshSessions) {
           this.getSessions();
+        }
+        
+        // 标记打字完成
+        if (this.messageList[aiMsgIndex]) {
+          this.$set(this.messageList[aiMsgIndex], "isTyping", false);
         }
       } catch (err) {
         if (err.name === "AbortError") {
@@ -887,8 +999,11 @@ export default {
       if (this.isAutoScroll && this.$refs.chatHistoryRef) {
         this.isProgrammaticScroll = true;
 
-        this.$refs.chatHistoryRef.scrollTop =
-          this.$refs.chatHistoryRef.scrollHeight;
+        // 使用 smooth 滚动实现更流畅的效果
+        this.$refs.chatHistoryRef.scrollTo({
+          top: this.$refs.chatHistoryRef.scrollHeight,
+          behavior: 'smooth'
+        });
 
         this.$nextTick(() => {
           if (this.$refs.chatHistoryRef && this.isAutoScroll) {
@@ -902,7 +1017,7 @@ export default {
         this.scrollTimeout = setTimeout(() => {
           this.isProgrammaticScroll = false;
           this.scrollTimeout = null;
-        }, 100);
+        }, 150);
       }
     },
     handleMainAction() {
@@ -920,7 +1035,7 @@ export default {
 .chat-container {
   height: calc(100vh - 84px);
   padding: 0;
-  background-color: #f0f2f5;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
   overflow: hidden;
 }
 
@@ -952,32 +1067,38 @@ export default {
     padding: 10px;
 
     &::-webkit-scrollbar {
-      width: 4px;
+      width: 6px;
     }
     &::-webkit-scrollbar-thumb {
-      background: #dcdfe6;
-      border-radius: 2px;
+      background: #c0c4cc;
+      border-radius: 3px;
+      
+      &:hover {
+        background: #909399;
+      }
     }
 
     .session-item {
       display: flex;
       align-items: center;
-      padding: 12px;
+      padding: 14px 12px;
       margin-bottom: 8px;
       background-color: transparent;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s ease;
       position: relative;
       border: 1px solid transparent;
 
       &:hover {
         background-color: #f5f7fa;
+        transform: translateX(4px);
       }
 
       &.active {
-        background-color: #ecf5ff;
-        border-color: #c6e2ff;
+        background: linear-gradient(135deg, #ecf5ff 0%, #e6f7ff 100%);
+        border-color: #b3d8ff;
+        box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
 
         .session-icon {
           color: #409eff;
@@ -985,14 +1106,16 @@ export default {
 
         .session-title {
           color: #409eff;
+          font-weight: 600;
         }
       }
 
       .session-icon {
-        margin-right: 10px;
+        margin-right: 12px;
         color: #909399;
         display: flex;
         align-items: center;
+        font-size: 18px;
       }
 
       .session-info {
@@ -1006,6 +1129,7 @@ export default {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          transition: all 0.2s;
         }
 
         .session-time {
@@ -1019,7 +1143,7 @@ export default {
 
       .delete-btn {
         opacity: 0;
-        transition: opacity 0.2s;
+        transition: all 0.2s;
         padding: 4px;
       }
 
@@ -1047,19 +1171,27 @@ export default {
   overflow: hidden;
 
   .chat-header {
-    height: 60px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #dcdfe6;
+    height: 64px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-bottom: 1px solid #e4e7ed;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+    padding: 0 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 
     .header-title {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
       color: #303133;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      &::before {
+        content: '🤖';
+        font-size: 24px;
+      }
     }
   }
 
@@ -1067,6 +1199,24 @@ export default {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
+    scroll-behavior: smooth;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      
+      &:hover {
+        background: rgba(0, 0, 0, 0.3);
+      }
+    }
 
     .chat-content {
       min-height: 100%;
@@ -1090,39 +1240,69 @@ export default {
 
       .welcome-icon {
         border-radius: 50%;
-        padding: 20px;
-        margin-bottom: 5px;
-        color: #409eff;
+        padding: 30px;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        animation: pulse 2s ease-in-out infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
       }
 
       h2 {
-        margin-bottom: 10px;
-        font-weight: 500;
+        margin-bottom: 12px;
+        font-weight: 600;
+        color: #303133;
+        font-size: 24px;
       }
 
       p {
         margin-top: 0;
+        color: #909399;
+        font-size: 15px;
       }
     }
 
     .message-row {
       display: flex;
       max-width: 900px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
       margin-left: auto;
       margin-right: auto;
+      animation: messageSlideIn 0.3s ease-out;
+
+      @keyframes messageSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
       .message-avatar {
         flex-shrink: 0;
-        margin-right: 12px;
+        margin-right: 14px;
         margin-top: 2px;
 
         .avatar-user {
-          background-color: #409eff;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         .avatar-ai {
-          background-color: #67c23a;
+          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          box-shadow: 0 2px 8px rgba(240, 147, 251, 0.3);
         }
       }
 
@@ -1130,12 +1310,13 @@ export default {
         flex: 1;
         display: flex;
         flex-direction: column;
-        max-width: calc(100% - 52px);
+        max-width: calc(100% - 54px);
 
         .message-sender {
-          font-size: 12px;
-          color: #909399;
-          margin-bottom: 4px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #606266;
+          margin-bottom: 6px;
           display: flex;
           align-items: center;
           gap: 10px;
@@ -1143,32 +1324,51 @@ export default {
 
         .message-time {
           font-size: 11px;
-          opacity: 0.8;
+          opacity: 0.7;
+          font-weight: 400;
         }
 
         .message-bubble {
-          padding: 12px 16px;
-          border-radius: 12px;
+          padding: 14px 18px;
+          border-radius: 16px;
           font-size: 15px;
-          line-height: 1.6;
+          line-height: 1.7;
           max-width: 100%;
           min-width: 60px;
           background-color: #fff;
+          position: relative;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+          }
         }
 
         .message-footer {
-          margin-top: 6px;
+          margin-top: 8px;
           display: flex;
           justify-content: space-between;
           align-items: center;
           width: 100%;
+          opacity: 0.7;
+          transition: opacity 0.2s;
+
+          &:hover {
+            opacity: 1;
+          }
 
           .message-metrics {
             font-size: 12px;
             color: #909399;
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
+            
+            span {
+              padding: 2px 8px;
+              background-color: #f5f7fa;
+              border-radius: 4px;
+            }
           }
 
           .footer-actions {
@@ -1185,10 +1385,10 @@ export default {
 
       &.message-user {
         flex-direction: row-reverse;
-        padding-left: 52px;
+        padding-left: 54px;
 
         .message-avatar {
-          margin-left: 12px;
+          margin-left: 14px;
           margin-right: 0;
         }
 
@@ -1204,21 +1404,27 @@ export default {
           }
 
           .message-bubble {
-            background-color: #409eff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
-            border-top-right-radius: 2px;
+            border-top-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+            
+            &:hover {
+              box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+            }
           }
         }
       }
 
       &.message-ai {
-        padding-right: 52px;
+        padding-right: 54px;
 
         .message-bubble {
           background-color: #ffffff;
           color: #303133;
-          border-top-left-radius: 2px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          border-top-left-radius: 4px;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+          border: 1px solid #f0f0f0;
         }
       }
     }
@@ -1226,33 +1432,43 @@ export default {
 }
 
 .chat-input-area {
-  background-color: #ffffff;
-  border-top: 1px solid #dcdfe6;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, #ffffff 100%);
+  border-top: 1px solid #e4e7ed;
   padding: 20px;
+  backdrop-filter: blur(10px);
 
   .input-wrapper {
     max-width: 900px;
     margin: 0 auto;
     position: relative;
-    border: 1px solid #dcdfe6;
-    border-radius: 12px;
-    padding: 10px;
-    transition: border-color 0.2s;
+    border: 2px solid #e4e7ed;
+    border-radius: 16px;
+    padding: 12px;
+    transition: all 0.3s ease;
+    background-color: #ffffff;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 
     &:focus-within {
-      border-color: #409eff;
-      box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+      border-color: #667eea;
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+      transform: translateY(-2px);
     }
 
     ::v-deep .el-textarea__inner {
       border: none;
       box-shadow: none;
-      padding: 0;
+      padding: 4px 0;
       resize: none;
       background: transparent;
+      font-size: 15px;
+      line-height: 1.6;
 
       &:focus {
         box-shadow: none;
+      }
+      
+      &::placeholder {
+        color: #c0c4cc;
       }
     }
 
@@ -1267,8 +1483,14 @@ export default {
       .selected-image-item {
         width: 60px;
         height: 60px;
-        border-radius: 4px;
-        border: 1px solid #dcdfe6;
+        border-radius: 8px;
+        border: 2px solid #e4e7ed;
+        transition: all 0.2s;
+        
+        &:hover {
+          border-color: #667eea;
+          transform: scale(1.05);
+        }
       }
     }
 
@@ -1278,17 +1500,46 @@ export default {
       align-items: center;
       margin-top: 10px;
       padding-top: 10px;
-      border-top: 1px solid #dcdfe6;
+      border-top: 1px solid #f0f0f0;
 
       .left-actions {
         display: flex;
-        gap: 6px;
+        gap: 8px;
         align-items: center;
 
         .toggle-chip {
           border-radius: 999px;
           margin-left: 0;
+          transition: all 0.2s;
+          
+          &:hover {
+            transform: translateY(-1px);
+          }
         }
+      }
+      
+      ::v-deep .el-button--primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 10px 24px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+      
+      ::v-deep .el-button--danger {
+        border-radius: 10px;
+        padding: 10px 24px;
+        font-weight: 500;
       }
     }
   }
@@ -1323,5 +1574,129 @@ export default {
 .user-text {
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+// 工具调用样式
+.tool-calls-container {
+  margin-top: 12px;
+  
+  .tool-call-item {
+    background-color: #f5f7fa;
+    border: 1px solid #e4e7ed;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    transition: all 0.3s;
+    
+    &.tool-call-running {
+      border-color: #409eff;
+      background-color: #ecf5ff;
+    }
+    
+    &.tool-call-completed {
+      border-color: #67c23a;
+      background-color: #f0f9ff;
+    }
+    
+    &.tool-call-error {
+      border-color: #f56c6c;
+      background-color: #fef0f0;
+    }
+    
+    // 业务友好显示样式
+    .tool-call-display {
+      .tool-call-friendly {
+        background-color: transparent;
+        color: #303133;
+        padding: 0;
+        margin: 0;
+        font-size: 14px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border: none;
+      }
+    }
+    
+    .tool-call-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      
+      .tool-call-icon {
+        font-size: 16px;
+      }
+      
+      .tool-call-name {
+        flex: 1;
+        font-size: 14px;
+      }
+      
+      .tool-call-status {
+        font-size: 12px;
+        color: #909399;
+      }
+    }
+    
+    .tool-call-args,
+    .tool-call-result {
+      margin-top: 8px;
+      
+      ::v-deep .el-collapse {
+        border: none;
+        
+        .el-collapse-item__header {
+          background-color: transparent;
+          border: none;
+          font-size: 12px;
+          color: #606266;
+          padding-left: 0;
+        }
+        
+        .el-collapse-item__wrap {
+          border: none;
+          background-color: transparent;
+        }
+        
+        .el-collapse-item__content {
+          padding: 8px 0 0 0;
+        }
+      }
+      
+      .tool-call-code {
+        background-color: #282c34;
+        color: #abb2bf;
+        padding: 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        overflow-x: auto;
+        margin: 0;
+        max-height: 200px;
+        overflow-y: auto;
+        
+        &::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: #4a4a4a;
+          border-radius: 3px;
+        }
+      }
+    }
+    
+    .tool-call-error {
+      margin-top: 8px;
+      font-size: 13px;
+      padding: 8px;
+      background-color: #fef0f0;
+      border-radius: 4px;
+    }
+  }
 }
 </style>
